@@ -75,4 +75,77 @@ document.addEventListener('DOMContentLoaded', function () {
     alert('Thanks — your message has been received (demo).');
     contactForm.reset();
   });
+
+  // Gallery behavior
+  (async function () {
+    const track = document.querySelector('.gallery-track');
+    if (!track) return;
+    const imgs = Array.from(track.querySelectorAll('.gallery-img'));
+    // helper to verify if a src loads in this browser
+    function testSrc(src) {
+      return new Promise((resolve) => {
+        const t = new Image();
+        t.onload = () => resolve(true);
+        t.onerror = () => resolve(false);
+        t.src = src;
+      });
+    }
+
+    // attempt to find a usable fallback for images that fail to load (HEIC etc.)
+    await Promise.all(imgs.map(async (imgEl) => {
+      const original = imgEl.getAttribute('src');
+      if (!original) return;
+      if (await testSrc(original)) return;
+      // try common extensions
+      const base = original.includes('.') ? original.slice(0, original.lastIndexOf('.')) : original;
+      const alts = ['jpeg', 'jpg', 'png', 'svg'];
+      for (const ext of alts) {
+        const candidate = base + '.' + ext;
+        if (await testSrc(candidate)) { imgEl.src = candidate; return; }
+      }
+      // last resort: use the small svg thumbnail we provide (by data-index)
+      const idx = Number(imgEl.dataset.index) || 0;
+      imgEl.src = `assets/gallery/photo${idx + 1}.svg`;
+    }));
+    const thumbs = Array.from(document.querySelectorAll('.gallery-thumbs .thumb'));
+    const leftNav = document.querySelector('.gallery-nav.left');
+    const rightNav = document.querySelector('.gallery-nav.right');
+    let index = 0;
+
+    function show(i) {
+      index = (i + imgs.length) % imgs.length;
+      imgs.forEach((img, n) => {
+        img.classList.remove('active', 'side');
+        if (n === index) img.classList.add('active');
+        else if (n === (index - 1 + imgs.length) % imgs.length) img.classList.add('side');
+        else if (n === (index + 1) % imgs.length) img.classList.add('side');
+      });
+      // shift track so current image is visible
+      track.style.transform = `translateX(-${index * 100}%)`;
+      thumbs.forEach(btn => btn.setAttribute('aria-pressed', 'false'));
+      const activeThumb = document.querySelector(`.gallery-thumbs .thumb[data-index="${index}"]`);
+      if (activeThumb) activeThumb.setAttribute('aria-pressed', 'true');
+
+      // left preview removed — no preview update needed
+    }
+
+    function next() { show(index + 1); }
+    function prev() { show(index - 1); }
+
+    // overlays
+    leftNav?.addEventListener('click', (e) => { e.preventDefault(); prev(); });
+    rightNav?.addEventListener('click', (e) => { e.preventDefault(); next(); });
+
+    // thumbnails
+    thumbs.forEach(btn => btn.addEventListener('click', () => show(Number(btn.dataset.index))));
+
+    // keyboard
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') prev();
+      if (e.key === 'ArrowRight') next();
+    });
+
+    // initial
+    show(0);
+  })();
 });
