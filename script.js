@@ -1,8 +1,5 @@
 // Basic interactivity: mobile nav toggle, donation modal, simple form hooks
 document.addEventListener('DOMContentLoaded', function () {
-  // year in footer
-  document.getElementById('year').textContent = new Date().getFullYear();
-
   // mobile nav
   const navToggle = document.querySelector('.nav-toggle');
   const nav = document.getElementById('primary-nav');
