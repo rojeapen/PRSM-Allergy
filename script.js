@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function openModal() {
     if (!modal) return;
+    // window.open(window.location.origin + "/events.html", '_blank');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
     // focus first form field for accessibility
