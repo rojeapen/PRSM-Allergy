@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-label="Photo 2">
-  <rect width="1200" height="700" fill="#fff8f2"/>
-  <g transform="translate(60,40)">
-    <rect width="1080" height="620" rx="12" fill="#fff" stroke="#fbe7d6"/>
-    <text x="540" y="310" font-size="48" text-anchor="middle" fill="#b45a13" font-family="Arial, Helvetica, sans-serif">Gallery Photo 2</text>
-  </g>
-</svg>
