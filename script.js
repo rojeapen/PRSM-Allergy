@@ -78,7 +78,40 @@ document.addEventListener('DOMContentLoaded', function () {
   (async function () {
     const track = document.querySelector('.gallery-track');
     if (!track) return;
-    const imgs = Array.from(track.querySelectorAll('.gallery-img'));
+    let imgs = Array.from(track.querySelectorAll('.gallery-img'));
+    // helper to extract the numeric order from filenames like gallery1.jpg
+    function extractNumFromSrc(src) {
+      if (!src) return Infinity;
+      const s = src.toString();
+      const m = s.match(/gallery(?:-|_)?(\d+)\b/i) || s.match(/(\d+)\b/);
+      return m ? Number(m[1]) : Infinity;
+    }
+
+    // normalize DOM order of track images and thumbnail buttons so they follow numeric filename order
+    function normalizeGalleryOrder() {
+      const imgsLocal = Array.from(track.querySelectorAll('.gallery-img'));
+      imgsLocal.sort((a, b) => extractNumFromSrc(a.getAttribute('src') || a.src) - extractNumFromSrc(b.getAttribute('src') || b.src));
+      imgsLocal.forEach((img, i) => {
+        img.dataset.index = i;
+        track.appendChild(img);
+      });
+
+      const thumbsContainer = document.querySelector('.gallery-thumbs');
+      if (thumbsContainer) {
+        const thumbs = Array.from(thumbsContainer.querySelectorAll('.thumb'));
+        thumbs.sort((a, b) => {
+          const aImg = a.querySelector('img');
+          const bImg = b.querySelector('img');
+          const aNum = Number(a.dataset.index) || extractNumFromSrc(aImg && (aImg.getAttribute('src') || aImg.src));
+          const bNum = Number(b.dataset.index) || extractNumFromSrc(bImg && (bImg.getAttribute('src') || bImg.src));
+          return aNum - bNum;
+        });
+        thumbs.forEach((t, i) => {
+          t.dataset.index = i;
+          thumbsContainer.appendChild(t);
+        });
+      }
+    }
     // helper to verify if a src loads in this browser
     function testSrc(src) {
       return new Promise((resolve) => {
@@ -104,9 +137,10 @@ document.addEventListener('DOMContentLoaded', function () {
       // last resort: use a neutral placeholder (avoid grey thumbnail backgrounds)
       imgEl.src = `assets/gallery/placeholder.svg`;
     }));
-    // collect thumbnails and sort them by their numeric data-index to ensure order matches images
-    const thumbs = Array.from(document.querySelectorAll('.gallery-thumbs .thumb'))
-      .sort((a, b) => (Number(a.dataset.index) || 0) - (Number(b.dataset.index) || 0));
+    // normalize DOM order (so gallery1..gallery5 appear in numeric order) and re-collect images/thumbs
+    normalizeGalleryOrder();
+    imgs = Array.from(track.querySelectorAll('.gallery-img'));
+    const thumbs = Array.from(document.querySelectorAll('.gallery-thumbs .thumb'));
     const leftNav = document.querySelector('.gallery-nav.left');
     const rightNav = document.querySelector('.gallery-nav.right');
     let index = 0;
