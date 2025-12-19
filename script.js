@@ -101,11 +101,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const candidate = base + '.' + ext;
         if (await testSrc(candidate)) { imgEl.src = candidate; return; }
       }
-      // last resort: use the small svg thumbnail we provide (by data-index)
-      const idx = Number(imgEl.dataset.index) || 0;
-      imgEl.src = `assets/gallery/photo${idx + 1}.svg`;
+      // last resort: use a neutral placeholder (avoid grey thumbnail backgrounds)
+      imgEl.src = `assets/gallery/placeholder.svg`;
     }));
-    const thumbs = Array.from(document.querySelectorAll('.gallery-thumbs .thumb'));
+    // collect thumbnails and sort them by their numeric data-index to ensure order matches images
+    const thumbs = Array.from(document.querySelectorAll('.gallery-thumbs .thumb'))
+      .sort((a, b) => (Number(a.dataset.index) || 0) - (Number(b.dataset.index) || 0));
     const leftNav = document.querySelector('.gallery-nav.left');
     const rightNav = document.querySelector('.gallery-nav.right');
     let index = 0;
@@ -121,11 +122,35 @@ document.addEventListener('DOMContentLoaded', function () {
       // shift track so current image is visible
       track.style.transform = `translateX(-${index * 100}%)`;
       thumbs.forEach(btn => btn.setAttribute('aria-pressed', 'false'));
-      const activeThumb = document.querySelector(`.gallery-thumbs .thumb[data-index="${index}"]`);
+      const activeThumb = thumbs.find(btn => Number(btn.dataset.index) === index);
       if (activeThumb) activeThumb.setAttribute('aria-pressed', 'true');
 
       // left preview removed — no preview update needed
     }
+
+    // clicking an image: open if active, otherwise select it
+    imgs.forEach((img, n) => {
+      img.addEventListener('click', (e) => {
+        if (img.classList.contains('active')) {
+          // open the image source in a new tab (user asked to open link)
+          window.open(img.src, '_blank');
+        } else {
+          show(n);
+        }
+      });
+      // keyboard accessibility: Enter opens when focused
+      img.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          if (img.classList.contains('active')) window.open(img.src, '_blank');
+          else show(n);
+        }
+      });
+      // make images focusable for keyboard users
+      img.setAttribute('tabindex', '0');
+      img.setAttribute('role', 'button');
+      img.setAttribute('aria-label', 'Open image in new tab');
+    });
 
     function next() { show(index + 1); }
     function prev() { show(index - 1); }

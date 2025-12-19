@@ -192,10 +192,14 @@ body {
   opacity: 0;
   transition: opacity 0.28s ease;
   background-color: #fff;
+  cursor: default;
 }
 .gallery-img.active {
   opacity: 1;
+  cursor: zoom-in;
 }
+/* Ensure images that are focusable show a pointer for keyboard users */
+.gallery-img:focus-visible{outline:3px solid rgba(0,180,216,0.18);outline-offset:6px}
 .gallery-img.side {
   opacity: 0.36;
   filter: grayscale(0.2);
