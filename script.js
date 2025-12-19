@@ -122,21 +122,13 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
-    // attempt to find a usable fallback for images that fail to load (HEIC etc.)
-    await Promise.all(imgs.map(async (imgEl) => {
-      const original = imgEl.getAttribute('src');
-      if (!original) return;
-      if (await testSrc(original)) return;
-      // try common extensions
-      const base = original.includes('.') ? original.slice(0, original.lastIndexOf('.')) : original;
-      const alts = ['jpeg', 'jpg', 'png', 'svg'];
-      for (const ext of alts) {
-        const candidate = base + '.' + ext;
-        if (await testSrc(candidate)) { imgEl.src = candidate; return; }
-      }
-      // last resort: use a neutral placeholder (avoid grey thumbnail backgrounds)
-      imgEl.src = `assets/gallery/placeholder.svg`;
-    }));
+    // mark images that fail to load instead of replacing them with other files
+    imgs.forEach((imgEl) => {
+      imgEl.addEventListener('error', () => {
+        console.warn('Gallery image failed to load:', imgEl.getAttribute('src'));
+        imgEl.classList.add('broken');
+      });
+    });
     // normalize DOM order (so gallery1..gallery5 appear in numeric order) and re-collect images/thumbs
     normalizeGalleryOrder();
     imgs = Array.from(track.querySelectorAll('.gallery-img'));
