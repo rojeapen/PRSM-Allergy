@@ -1,7 +1,7 @@
 :root {
   --bg: #ffffff;
-  --muted: #66788a;
-  --brand: #009ca7;
+  --muted: #66788a; 
+  --brand: #008080ff;
   --brand-600: #035f53;
   --accent: #10c8d2;
   --max-width: 1100px;
@@ -78,6 +78,48 @@ body {
   color: inherit;
   text-decoration: none;
   font-weight: 600;
+}
+.nav-item-with-dropdown {
+  position: relative;
+}
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #fff;
+  border: 1px solid #eef4f6;
+  border-radius: 6px;
+  flex-direction: column;
+  list-style: none;
+  margin: 0.5rem 0 0 0;
+  padding: 0.5rem 0;
+  min-width: 200px;
+  box-shadow: 0 4px 12px rgba(6, 14, 21, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+  z-index: 50;
+}
+.nav-item-with-dropdown:hover .dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.dropdown-menu li {
+  margin: 0;
+}
+.dropdown-menu a {
+  display: block;
+  padding: 0.6rem 1rem;
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+.dropdown-menu a:hover {
+  background-color: #f6fbff;
+  color: var(--brand);
 }
 .nav-toggle {
   display: none;

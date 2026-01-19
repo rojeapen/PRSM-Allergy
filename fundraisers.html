@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Fundraisers - PRSM Allergy Foundation</title>
+  <meta name="description" content="PRSM Allergy Foundation — supporting breakthrough research and community programs to fight allergies and promote allergy awareness." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="assets/prsmlogo.png" type="image/png" />
+</head>
+<!-- add the logo ^ without the text for the tab preview icon -->
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header" role="banner">
+    <div class="wrap header-inner">
+      <div class="brand">
+        <img src="assets/prsmlogo.png" alt="PRSM Allergy Research logo" class="logo" />
+        <div>
+          <h1 class="site-title">PRSM Allergy</h1>
+          <p class="site-tag">Fundraising and promoting awareness for allergy research and community support</p>
+        </div>
+      </div>
+
+      <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu">
+        ☰
+      </button>
+
+      <nav id="primary-nav" class="nav" role="navigation" aria-label="Primary navigation">
+        <ul>
+          <li><a href="#about">About</a></li>
+          <li><a href="#research">Research</a></li>
+          <li><a href="#events">Events</a></li>
+          <li><a href="#get-involved">Get Involved</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-cta">
+        <a class="btn primary" href="#donate" id="donate-open">Donate</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" role="main">
+    
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="wrap footer-inner">
+      <div>
+        <p> </span> PRSM Allergy Foundation.</p>
+        <p class="small">PRSM is a not registered 501(c)(3). 100% of donations go directly to the external allergy research organizations we support.</p>
+      </div>
+      <div class="social">
+        <a href="#" aria-label="Follow us on Twitter">Twitter</a>
+        <a href="#" aria-label="Follow us on Facebook">Facebook</a>
+        <a href="#" aria-label="Follow us on Instagram">Instagram</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Donation modal (simple UI only) -->
+  <div id="donation-modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="donation-title">
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Close donation dialog">&times;</button>
+      <h3 id="donation-title">Donate to PRSM</h3>
+      <p>Your support funds research and community programs. Choose an amount or enter custom value.</p>
+      <form id="donation-form" class="donation-form" action="#" method="post" novalidate>
+        <fieldset>
+          <legend class="sr-only">Donation amount</legend>
+          <div class="amounts">
+            <label><input type="radio" name="amount" value="25" /> $25</label>
+            <label><input type="radio" name="amount" value="50" /> $50</label>
+            <label><input type="radio" name="amount" value="100" /> $100</label>
+            <label><input type="radio" name="amount" value="other" /> Other</label>
+          </div>
+          <label for="custom-amount" class="sr-only">Custom amount in USD</label>
+          <input id="custom-amount" name="custom-amount" type="number" min="1" placeholder="Custom amount (USD)" />
+        </fieldset>
+
+        <label for="donor-name">Name</label>
+        <input id="donor-name" name="donor-name" required />
+
+        <label for="donor-email">Email</label>
+        <input id="donor-email" name="donor-email" type="email" required />
+
+        <p class="small">This is a demo template. Integrate Stripe, PayPal, or another processor to accept payments securely.</p>
+        <div class="modal-actions">
+          <button type="submit" class="btn primary">Continue to payment</button>
+          <button type="button" class="btn outline modal-cancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
