@@ -1,33 +1,73 @@
-# PRSM-Allergy
-Main website for PRSM Allergy.
-echo "# PRSM-Allergy" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/rojeapen/PRSM-Allergy.git
-git push -u origin main
+# React + TypeScript + Vite
 
-## Photo Gallery
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-A simple photo gallery was added under the `#gallery` section in `index.html`.
+Currently, two official plugins are available:
 
-How it works
-- The gallery stage uses images from `assets/gallery/`.
-- Thumbnails are placed in the `.gallery-thumbs` area and correspond to the images in the stage.
-- Click/tap the left or right side of the big image (or use the left/right arrow keys) to navigate between images.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-Customizing
-- Add your photos to `assets/gallery/` (keep the filenames consistent and add matching `<img>` tags in the gallery markup).
-- To change the number of images, add/remove `<img class="gallery-img">` elements in the `.gallery-track` and matching `<button class="thumb" data-index="N">` entries in `.gallery-thumbs`.
-- Styling is in `styles.css` under the `/* Gallery */` section. Change sizes, preview width and transitions there.
+## React Compiler
 
-Accessibility
-- Thumbnails have `aria-pressed` toggled to indicate the selected image.
-- Navigation buttons have `aria-label` text for screen readers.
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-If you'd like, I can make the gallery automatically detect images in `assets/gallery/` so you only need to drop images in the folder (and JS will create thumbnails automatically).
+## Expanding the ESLint configuration
 
-Notes about image formats
-- Some browsers do not support HEIC images (commonly produced by iPhones). The gallery attempts to detect when an image fails to load and will try common fallbacks (JPEG/PNG) and finally use a provided SVG thumbnail as a fallback.
-- For best compatibility and performance, convert HEIC images to JPEG or WebP before deploying (tools: `sips` on macOS, `imagemagick`, or online converters).
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```
+
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```

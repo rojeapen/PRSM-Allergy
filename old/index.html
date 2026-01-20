@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PRSM Allergy Foundation</title>
+  <meta name="description" content="PRSM Allergy Foundation — supporting breakthrough research and community programs to fight allergies and promote allergy awareness." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon"  type="image/svg" href="assets/favicon.svg"/>
+  
+</head>
+<!-- add the logo ^ without the text for the tab preview icon -->
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header" role="banner">
+    <div class="wrap header-inner">
+      <div class="brand">
+        <img src="assets/favicon.svg" alt="PRSM Allergy Research logo" class="logo" />
+        <div>
+          <h1 class="site-title">PRSM Allergy</h1>
+          <p class="site-tag">Fundraising and promoting awareness for allergy & immunology research and community support</p>
+        </div>
+      </div>
+
+      <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu">
+        ☰
+      </button>
+
+      <nav id="primary-nav" class="nav" role="navigation" aria-label="Primary navigation">
+        <ul>
+          <li><a href="#about">About</a></li>
+          <li class="nav-item-with-dropdown">
+            <a>Fundraising</a>
+            <ul class="dropdown-menu">
+              <li><a href="fundraisers.html">Annual Walkathon</a></li>
+              <li><a href="#fundraiser-gala">Research Gala</a></li>
+              <li><a href="#fundraiser-bake-sale">Community Bake Sale</a></li>
+            </ul>
+          </li>
+          <li><a href="#events">Events</a></li>
+          <li><a href="#get-involved">Get Involved</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="header-cta">
+        <a class="btn primary" href="#donate" id="donate-open">Donate</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" role="main">
+    <section class="hero">
+      <div class="wrap hero-inner">
+        <div class="hero-copy">
+          <h2>Help fund life-changing allergy research</h2>
+          <p>Allergies affect over 100 million Americans <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7277149/">(NIH)</a>. Your gift funds research, patient programs, and equitable access to care.</p>
+          <div class="hero-actions">
+            <a class="btn primary large" href="#donate" id="hero-donate">Donate Now</a>
+            <a class="btn outline" href="#about">Learn More</a>
+          </div>
+        </div>
+        <div class="hero-image" aria-hidden="true">
+          <!-- decorative illustration -->
+          <svg width="320" height="220" viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+            <rect width="320" height="220" rx="14" fill="#F6FBFF"/>
+            <g fill="#0A6C95">
+              <circle cx="60" cy="70" r="34" opacity="0.95"/>
+              <path d="M200 120c-28 0-40 24-56 36 18-2 40 0 56 8 20 10 34-18 20-36-6-8-14-8-20-8z" opacity="0.9"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <section id="gallery" class="wrap section">
+      <h3>Gallery</h3>
+      <p>Highlights from our recent events and community programs.</p>
+      <div class="gallery">
+        <div class="gallery-stage" aria-live="polite">
+          <button class="gallery-nav left" aria-label="Previous image" data-action="prev">
+            <span class="nav-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+
+          <div class="gallery-track">
+            <!-- Images in order: 1..5 (data-index 0..4) -->
+            <img src="assets/gallery/gallery1.jpg" alt="Gallery photo 1" class="gallery-img" data-index="0">
+            <img src="assets/gallery/gallery2.JPEG" alt="Gallery photo 2" class="gallery-img" data-index="1">
+            <img src="assets/gallery/gallery3.jpg" alt="Gallery photo 3" class="gallery-img" data-index="2">
+            <img src="assets/gallery/gallery4.jpeg" alt="Gallery photo 4" class="gallery-img" data-index="3">
+            <img src="assets/gallery/gallery5.jpg" alt="Gallery photo 5" class="gallery-img" data-index="4">
+          </div>
+
+          <button class="gallery-nav right" aria-label="Next image" data-action="next">
+            <span class="nav-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+        </div>
+
+        <div class="gallery-thumbs" role="tablist" aria-label="Gallery thumbnails">
+          <button class="thumb" data-index="0" aria-label="Open image 1"><img src="assets/gallery/gallery1.jpg" alt="Thumb 1"></button>
+          <button class="thumb" data-index="1" aria-label="Open image 2"><img src="assets/gallery/gallery2.JPEG" alt="Thumb 2"></button>
+          <button class="thumb" data-index="2" aria-label="Open image 3"><img src="assets/gallery/gallery3.jpg" alt="Thumb 3"></button>
+          <button class="thumb" data-index="3" aria-label="Open image 4"><img src="assets/gallery/gallery4.jpeg" alt="Thumb 4"></button>
+          <button class="thumb" data-index="4" aria-label="Open image 5"><img src="assets/gallery/gallery5.jpg" alt="Thumb 5"></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="wrap section">
+      <h3>Who we are</h3>
+      <p class="lede">PRSM is a nonprofit dedicated to supporting cutting-edge allergy research, patient education, and community interventions to reduce the burden of allergic disease.</p>
+      <div class="grid-3">
+        <article>
+          <h4>Research Grants</h4>
+          <p>We fund early-career investigators and collaborative projects that target prevention and treatment of severe allergies.</p>
+        </article>
+        <article>
+          <h4>Community Programs</h4>
+          <p>Programs to improve allergy diagnosis, education in underserved areas, and support networks for families.</p>
+        </article>
+        <article>
+          <h4>Advocacy</h4>
+          <p>We work with policymakers and health systems to improve allergy care access and research funding.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="research" class="wrap section alt">
+      <h3>Our Impact in Research</h3>
+      <p>From bench to bedside — examples of how donations accelerate discovery and translate into improved patient care.</p>
+      <ul class="impact-list">
+        <li><strong>Novel immunotherapy trials</strong> enabling safer treatments for severe allergies.</li>
+        <li><strong>Population studies</strong> identifying environmental factors that increase allergy risk.</li>
+        <li><strong>Community screening programs</strong> connecting patients to care sooner.</li>
+      </ul>
+    </section>
+
+    <section id="events" class="wrap section">
+      <h3>Events</h3>
+      <p>Join fundraisers, awareness walks, and educational webinars.</p>
+      <ul class="events-list">
+        <li>
+          <time datetime="2026-04-12">Apr 12, 2026</time> — Annual Awareness Walk — City Park
+        </li>
+        <li>
+          <time datetime="2026-06-22">Jun 22, 2026</time> — Research Symposium (virtual)
+        </li>
+      </ul>
+    </section>
+
+    <section id="get-involved" class="wrap section alt">
+      <h3>Get involved</h3>
+      <p>Volunteer, attend events, or start a fundraiser.</p>
+      <div class="actions-row">
+        <a class="btn" href="#volunteer" id="volunteer-link">Volunteer</a>
+        <a class="btn outline" href="#fundraise">Start a fundraiser</a>
+      </div>
+    </section>
+
+    <section id="contact" class="wrap section">
+      <h3>Contact</h3>
+      <p>Questions? Reach out — we’d love to hear from you.</p>
+      <form id="contact-form" class="contact-form" method="post" action="#" novalidate>
+        <label for="name">Name</label>
+        <input id="name" name="name" required />
+
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required />
+
+        <label for="message">Message</label>
+        <textarea id="message" name="message" rows="4" required></textarea>
+
+        <button type="submit" class="btn primary">Send message</button>
+      </form>
+    </section>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="wrap footer-inner">
+      <div>
+        <p> </span> PRSM Allergy Foundation.</p>
+        <p class="small">PRSM is an unincorporated nonprofit association. 100% of donations go directly to the external allergy research organizations we support.</p>
+      </div>
+      <div class="social">
+        <a href="#" aria-label="Follow us on Twitter">Twitter</a>
+        <a href="#" aria-label="Follow us on Facebook">Facebook</a>
+        <a href="#" aria-label="Follow us on Instagram">Instagram</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Donation modal (simple UI only) -->
+  <div id="donation-modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="donation-title">
+    <div class="modal-content">
+      <button class="modal-close" aria-label="Close donation dialog">&times;</button>
+      <h3 id="donation-title">Donate to PRSM</h3>
+      <p>Your support funds research and community programs. Choose an amount or enter custom value.</p>
+      <form id="donation-form" class="donation-form" action="#" method="post" novalidate>
+        <fieldset>
+          <legend class="sr-only">Donation amount</legend>
+          <div class="amounts">
+            <label><input type="radio" name="amount" value="25" /> $25</label>
+            <label><input type="radio" name="amount" value="50" /> $50</label>
+            <label><input type="radio" name="amount" value="100" /> $100</label>
+            <label><input type="radio" name="amount" value="other" /> Other</label>
+          </div>
+          <label for="custom-amount" class="sr-only">Custom amount in USD</label>
+          <input id="custom-amount" name="custom-amount" type="number" min="1" placeholder="Custom amount (USD)" />
+        </fieldset>
+
+        <label for="donor-name">Name</label>
+        <input id="donor-name" name="donor-name" required />
+
+        <label for="donor-email">Email</label>
+        <input id="donor-email" name="donor-email" type="email" required />
+
+        <p class="small">This is a demo template. Integrate Stripe, PayPal, or another processor to accept payments securely.</p>
+        <div class="modal-actions">
+          <button type="submit" class="btn primary">Continue to payment</button>
+          <button type="button" class="btn outline modal-cancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
