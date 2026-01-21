@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80" width="200" height="80" role="img" aria-labelledby="logoTitle">
+  <title id="logoTitle">PRSM Allergy Research</title>
+  <defs>
+    <linearGradient id="g" x1="0" x2="1">
+      <stop offset="0" stop-color="#007EA7"/>
+      <stop offset="1" stop-color="#00B4D8"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="80" rx="8" fill="none"/>
+  <g transform="translate(8,8)">
+    <circle cx="28" cy="28" r="22" fill="url(#g)" />
+    <text x="64" y="36" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="#083048">PRSM</text>
+  </g>
+</svg>

@@ -1,0 +1,65 @@
+/* Primary Button */
+.btn-primary {
+    font-size: 1rem;
+    padding: 0.75rem 2rem;
+    border-radius: 1rem;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    background: #008080;
+    color: #fff;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+}
+
+.btn-primary:hover {
+    background: #006666;
+    border-color: #006666;
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+/* Secondary Button */
+.btn-secondary {
+    font-size: 1rem;
+    padding: 0.75rem 2rem;
+    border-radius: 1rem;
+    border: 2px solid #cce7ea;
+    cursor: pointer;
+    font-weight: 600;
+    background: #fff;
+    color: #008080;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #e6f7fa;
+    border-color: #008080;
+}
+
+.btn-secondary:active {
+    transform: scale(0.98);
+}
+
+/* Tertiary Button (for dark backgrounds) */
+.btn-tertiary {
+    font-size: 1rem;
+    padding: 0.75rem 2rem;
+    border-radius: 1rem;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    background: white;
+    color: #008080;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.btn-tertiary:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+}
+
+.btn-tertiary:active {
+    transform: translateY(0);
+}

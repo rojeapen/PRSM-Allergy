@@ -1,0 +1,126 @@
+.contact {
+    padding: 3rem 1rem;
+    background: white;
+}
+
+.contact-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.contact h3 {
+    font-size: 1.75rem;
+    font-weight: bold;
+    margin-bottom: 0.75rem;
+    color: black;
+}
+
+.contact-description {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 2rem;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background-color: white;
+    color: black;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #008080;
+    box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.contact-form button {
+    margin-top: 0.5rem;
+    width: fit-content;
+}
+
+.contact-success {
+    margin-top: 1rem;
+    color: #008080;
+    font-weight: 600;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media only screen and (max-width: 768px) {
+    .contact {
+        padding: 2rem 1rem;
+    }
+
+    .contact h3 {
+        font-size: 1.5rem;
+    }
+
+    .contact-description {
+        font-size: 0.95rem;
+    }
+
+    .contact-form {
+        gap: 1rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        padding: 0.625rem;
+        font-size: 0.95rem;
+    }
+}
+
+@media only screen and (max-width: 480px) {
+    .contact-container {
+        max-width: 100%;
+    }
+
+    .contact h3 {
+        font-size: 1.25rem;
+    }
+
+    .contact-description {
+        font-size: 0.9rem;
+    }
+}

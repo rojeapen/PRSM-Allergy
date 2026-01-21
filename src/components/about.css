@@ -1,0 +1,74 @@
+.about {
+    padding: 1rem 3rem;
+    background: white;
+}
+
+.about-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.about h3 {
+    font-size: 1.75rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: black;
+}
+
+.about-lede {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 2rem;
+    max-width: 800px;
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.about-card {
+    padding: 1.5rem;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary, #0A6C95);
+}
+
+.about-card h4 {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 0.75rem;
+    color: black;
+}
+
+.about-card p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #555;
+}
+
+@media only screen and (max-width: 768px) {
+    .about {
+        padding: 2rem 1rem;
+    }
+
+    .about h3 {
+        font-size: 1.5rem;
+    }
+
+    .about-lede {
+        font-size: 1rem;
+    }
+
+    .about-grid {
+        gap: 1.5rem;
+    }
+
+    .about-card {
+        padding: 1.25rem;
+    }
+}

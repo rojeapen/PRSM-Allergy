@@ -1,0 +1,122 @@
+.hero {
+    min-height: 60vh;
+    width: 100vw;
+    background: linear-gradient(180deg, #f6fbfd 60%, #fff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 0 0 2rem 0;
+}
+
+.hero-light {
+    background: linear-gradient(180deg, #f6fbfd 60%, #fff 100%);
+}
+
+.hero-content {
+    color: #1a2e3b;
+    max-width: 600px;
+    margin-left: 4vw;
+    z-index: 2;
+}
+
+.hero-title {
+    font-size: 2.7rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+}
+
+.hero-title-dark {
+    color: #18314f;
+}
+
+.hero-subtitle {
+    font-size: 1.35rem;
+    color: #425466;
+    margin-bottom: 2.5rem;
+    font-weight: 400;
+}
+
+.hero-subtitle-dark {
+    color: #425466;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.hero-btn {
+    font-size: 1.25rem;
+    padding: 0.75rem 2.5rem;
+    border-radius: 1rem;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+}
+
+.hero-btn.donate {
+    background: #008080;
+    color: #fff;
+    border: 2px solid #008080;
+}
+
+.hero-btn.donate:hover {
+    background: #006666;
+    border-color: #006666;
+}
+
+.hero-btn.learn {
+    background: #fff;
+    color: #008080;
+    border: 2px solid #cce7ea;
+}
+
+.hero-btn.learn:hover {
+    background: #e6f7fa;
+    border-color: #008080;
+}
+
+.hero-image {
+    margin-left: 4vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-image-light {
+    background: #f6fbfd;
+    border-radius: 2rem;
+    box-shadow: 0 8px 32px rgba(24, 49, 79, 0.07);
+    padding: 2rem 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 900px) {
+    .hero {
+        flex-direction: column;
+        justify-content: flex-start;
+        min-height: 60vh;
+        padding-top: 3rem;
+    }
+
+    .hero-content {
+        margin-left: 0;
+        text-align: center;
+        max-width: 90vw;
+    }
+
+    .hero-image,
+    .hero-image-light {
+        margin: 2rem auto 0 auto;
+        width: 90vw;
+        max-width: 400px;
+        padding: 1rem;
+    }
+}
