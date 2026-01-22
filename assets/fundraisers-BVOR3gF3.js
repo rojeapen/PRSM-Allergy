@@ -1,0 +1,1 @@
+import{c as s,j as r,r as t,H as n,F as e}from"./header-DdI6oKtD.js";s.createRoot(document.getElementById("root")).render(r.jsx(t.StrictMode,{children:r.jsx(a,{})}));function a(){return r.jsxs(r.Fragment,{children:[r.jsx(n,{isFundraiserPage:!0}),r.jsx(e,{}),r.jsx(e,{}),r.jsx(e,{})]})}
