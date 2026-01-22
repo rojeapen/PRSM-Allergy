@@ -61,6 +61,12 @@
     width: 100%;
 }
 
+.all-events {
+    text-align: center;
+    display: block;
+    margin: 0 auto 0 auto;
+}
+
 .event-date,
 .event-title,
 .event-location {

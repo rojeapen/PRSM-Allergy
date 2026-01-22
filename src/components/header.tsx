@@ -1,12 +1,14 @@
 import { useRef, useState } from "react";
 import './header.css'
 import Logo from '../assets/favicon.svg'
+import { ORIGIN } from "../constants";
 
 type HeaderProps = {
     isFundraiserPage?: boolean;
+    isEventPage?: boolean;
 }
 
-function Header({ isFundraiserPage = false }: HeaderProps) {
+function Header({ isFundraiserPage = false, isEventPage = false }: HeaderProps) {
 
 
     const headerRef = useRef<HTMLDivElement>(null);
@@ -31,7 +33,13 @@ function Header({ isFundraiserPage = false }: HeaderProps) {
                 </div>
 
                 <nav className="header-nav">
-                    {!isFundraiserPage ? <><label className="header-btn" onClick={() => {
+                    {isFundraiserPage ? <> <label className="header-btn" onClick={() => window.location.href = ORIGIN + "Events/"}>Events</label><label className="header-btn" onClick={() => {
+                        //Scroll to about section
+                        window.location.href = "/";
+                    }}>Home</label></> : isEventPage ? <> <label className="header-btn" onClick={() => window.location.href = ORIGIN + "Fundraisers/"}>Fundraisers</label><label className="header-btn" onClick={() => {
+                        //Scroll to about section
+                        window.location.href = "/";
+                    }}>Home</label></> : <><label className="header-btn" onClick={() => {
                         //Scroll to about section
                         const aboutSection = document.getElementById('about');
                         if (aboutSection) {
@@ -46,22 +54,8 @@ function Header({ isFundraiserPage = false }: HeaderProps) {
                             });
                         }
                     }}>About</label>
-                        <label className="header-btn" onClick={() => window.location.href = "/fundraisers/"}>Fundraising</label>
-                        <label className="header-btn" onClick={() => {
-                            //Scroll to about section
-                            const eventsSection = document.getElementById('events');
-                            if (eventsSection) {
-                                //take into account fixed header height
-                                const headerOffset = headerRef.current ? headerRef.current.offsetHeight : 0;
-                                const elementPosition = eventsSection.getBoundingClientRect().top;
-                                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-                                window.scrollTo({
-                                    top: offsetPosition,
-                                    behavior: 'smooth'
-                                });
-                            }
-                        }}>Events</label>
+                        <label className="header-btn" onClick={() => window.location.href = ORIGIN + "Fundraisers/"}>Fundraising</label>
+                        <label className="header-btn" onClick={() => window.location.href = ORIGIN + "Events/"}>Events</label>
                         <label className="header-btn" onClick={() => {
                             //Scroll to about section
                             const contactSection = document.getElementById('contact');
@@ -76,10 +70,7 @@ function Header({ isFundraiserPage = false }: HeaderProps) {
                                     behavior: 'smooth'
                                 });
                             }
-                        }}>Contact</label> </> : <><label className="header-btn" onClick={() => {
-                            //Scroll to about section
-                            window.location.href = "/";
-                        }}>Home</label></>}
+                        }}>Contact</label> </>}
                 </nav>
 
                 <button

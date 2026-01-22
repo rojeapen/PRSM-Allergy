@@ -17,7 +17,8 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: resolve(root, 'index.html'),
-        fundraisers: resolve(root, 'fundraisers', 'index.html')
+        fundraisers: resolve(root, 'fundraisers', 'index.html'),
+        events: resolve(root, 'events', 'index.html'),
       }
     }
   }

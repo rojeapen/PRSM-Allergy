@@ -1,9 +1,9 @@
-.fundraiser {
+.latest-fundraiser {
     padding: 3rem 1rem;
     background: var(--primary-light);
 }
 
-.fundraiser-container {
+.latest-fundraiser-container {
     max-width: 1200px;
     margin: 0 auto;
     display: grid;
@@ -12,21 +12,21 @@
     align-items: center;
 }
 
-.fundraiser-image {
+.latest-fundraiser .fundraiser-image {
     position: relative;
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.fundraiser-image img {
+.latest-fundraiser .fundraiser-image img {
     width: 100%;
     height: auto;
     border-radius: 8px;
     object-fit: cover;
 }
 
-.fundraiser-stats {
+.latest-fundraiser .fundraiser-stats {
     display: flex;
     gap: 2rem;
     background: white;
@@ -34,26 +34,26 @@
     border-radius: 8px;
 }
 
-.stat {
+.latest-fundraiser .stat {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
 }
 
-.stat-value {
+.latest-fundraiser .stat-value {
     font-size: 1.75rem;
     font-weight: bold;
     color: var(--primary, #0A6C95);
 }
 
-.stat-label {
+.latest-fundraiser .stat-label {
     font-size: 0.8rem;
     font-weight: 600;
     color: #666;
     letter-spacing: 0.05em;
 }
 
-.fundraiser-progress {
+.latest-fundraiser .fundraiser-progress {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -62,7 +62,7 @@
     border-radius: 8px;
 }
 
-.progress-info {
+.latest-fundraiser .progress-info {
     display: flex;
     justify-content: space-between;
     font-size: 0.85rem;
@@ -70,7 +70,7 @@
     color: #333;
 }
 
-.progress-bar {
+.latest-fundraiser .progress-bar {
     width: 100%;
     height: 8px;
     background: #e0e0e0;
@@ -78,19 +78,19 @@
     overflow: hidden;
 }
 
-.progress-fill {
+.latest-fundraiser .progress-fill {
     height: 100%;
     background: var(--primary, #0A6C95);
     transition: width 0.3s ease;
 }
 
-.fundraiser-content {
+.latest-fundraiser .fundraiser-content {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.fundraiser-label {
+.latest-fundraiser .fundraiser-label {
     font-size: 0.85rem;
     font-weight: 600;
     color: #666;
@@ -98,7 +98,7 @@
     margin: 0;
 }
 
-.fundraiser-content h3 {
+.latest-fundraiser .fundraiser-content h3 {
     font-size: 2rem;
     font-weight: bold;
     color: black;
@@ -106,7 +106,7 @@
     margin: 0;
 }
 
-.fundraiser-description {
+.latest-fundraiser .fundraiser-description {
     font-size: 1rem;
     line-height: 1.6;
     color: #555;
@@ -114,52 +114,52 @@
 }
 
 @media only screen and (max-width: 768px) {
-    .fundraiser {
+    .latest-fundraiser {
         padding: 2rem 1rem;
     }
 
-    .fundraiser-container {
+    .latest-fundraiser-container {
         grid-template-columns: 1fr;
         gap: 2rem;
     }
 
-    .fundraiser-content h3 {
+    .latest-fundraiser .fundraiser-content h3 {
         font-size: 1.5rem;
     }
 
-    .fundraiser-description {
+    .latest-fundraiser .fundraiser-description {
         font-size: 0.95rem;
     }
 
-    .fundraiser-stats {
+    .latest-fundraiser .fundraiser-stats {
         gap: 1.5rem;
         padding: 1rem;
     }
 
-    .stat-value {
+    .latest-fundraiser .stat-value {
         font-size: 1.5rem;
     }
 }
 
 @media only screen and (max-width: 480px) {
-    .fundraiser-container {
+    .latest-fundraiser-container {
         gap: 1.5rem;
     }
 
-    .fundraiser-content h3 {
+    .latest-fundraiser-content h3 {
         font-size: 1.25rem;
     }
 
-    .fundraiser-stats {
+    .latest-fundraiser .fundraiser-stats {
         gap: 1rem;
         padding: 0.75rem;
     }
 
-    .stat-value {
+    .latest-fundraiser .stat-value {
         font-size: 1.25rem;
     }
 
-    .fundraiser-btn {
+    .latest-fundraiser .fundraiser-btn {
         padding: 0.75rem 1.5rem;
         font-size: 0.85rem;
     }

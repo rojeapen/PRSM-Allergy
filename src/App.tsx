@@ -5,7 +5,7 @@ import About from './components/about';
 import Contact from './components/contact';
 import Events from './components/events';
 import Footer from './components/footer';
-import Fundraiser from './components/fundraiser';
+import LatestFundraiser from './components/latest_fundraiser';
 import Gallery from './components/gallery';
 import Header from './components/header';
 import Hero from './components/hero';
@@ -18,7 +18,7 @@ function App() {
       <Hero />
       <Gallery />
       <About />
-      <Fundraiser />
+      <LatestFundraiser />
       <Events />
       <Newsletter />
       <Contact />

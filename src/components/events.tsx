@@ -1,3 +1,4 @@
+import { ORIGIN } from '../constants';
 import './events.css';
 
 function Events() {
@@ -21,7 +22,7 @@ function Events() {
     return (
         <section id="events" className="events">
             <div className="events-container">
-                <h3>Events</h3>
+                <h3>Upcoming Events</h3>
                 <p className="events-description">Join fundraisers, awareness walks, and educational webinars.</p>
                 <div className="events-grid">
                     {eventsList.map((event) => (
@@ -32,6 +33,8 @@ function Events() {
                         </div>
                     ))}
                 </div>
+                <br />
+                <button className="btn-secondary all-events" onClick={() => window.location.href = ORIGIN + "Events/"}>View all events</button>
             </div>
         </section>
     );
