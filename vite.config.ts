@@ -9,7 +9,7 @@ const outDir = resolve(__dirname, 'dist')
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/',
+  base: '/PRSM-Allergy/',
   root,
   build: {
     outDir,
@@ -17,6 +17,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: resolve(root, 'index.html'),
+        fundraisers: resolve(root, 'fundraisers', 'index.html')
       }
     }
   }

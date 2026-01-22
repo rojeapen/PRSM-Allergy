@@ -69,6 +69,11 @@
   align-items: center;
 }
 
+.header-nav a {
+  text-decoration: none;
+  color: inherit;
+}
+
 .hamburger {
   display: none;
   flex-direction: column;

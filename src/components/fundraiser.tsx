@@ -39,6 +39,7 @@ function Fundraiser() {
                         With Fred Hutchinson Cancer Center, we can create a future where every advancement in cancer care is an advancement for all. Support us in transforming this vision into a reality.
                     </p>
                     <button className="btn-secondary">Link to Donate</button>
+                    <button className="btn-secondary">View more fundraisers</button>
                 </div>
             </div>
         </section>
