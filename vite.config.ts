@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 
 
+
 const root = resolve(__dirname, 'src')
 const outDir = resolve(__dirname, 'dist')
 
@@ -17,8 +18,12 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: resolve(root, 'index.html'),
-        fundraisers: resolve(root, 'fundraisers', 'index.html'),
-        events: resolve(root, 'events', 'index.html'),
+        fundraisers: resolve(root, 'Fundraisers', 'index.html'),
+        events: resolve(root, 'Events', 'index.html'),
+        login: resolve(root, 'Auth', 'Login', 'index.html'),
+        signup: resolve(root, 'Auth', 'Signup', 'index.html'),
+        dashboard: resolve(root, 'Dashboard', 'index.html'),
+        dashboardFundraisers: resolve(root, 'Dashboard', 'Fundraisers', 'index.html'),
       }
     }
   }

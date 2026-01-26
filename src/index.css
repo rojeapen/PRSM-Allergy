@@ -1,5 +1,5 @@
 @import './buttons.css';
-
+@import './inputs.css';
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -11,7 +11,7 @@
   background-color: white;
 
   --primary: #01d1d1;
-  --primary-dark: #003838;
+  --primary-dark: #008080;
   --primary-light: #01d1d114;
 
   font-synthesis: none;
@@ -72,5 +72,35 @@ button:focus-visible {
 
   button {
     background-color: #f9f9f9;
+  }
+}
+
+.loader {
+  border: 7px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 7px solid var(--primary);
+  width: 30px;
+  height: 30px;
+  -webkit-animation: spin 2s linear infinite;
+  /* Safari */
+  animation: spin 2s linear infinite;
+
+}
+
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  background-color: white;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
   }
 }

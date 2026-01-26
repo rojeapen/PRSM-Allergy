@@ -1,0 +1,25 @@
+.input {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    width: 250px;
+    background-color: white;
+    color: black;
+}
+
+.input:focus {
+    outline: 2px solid var(--primary-dark);
+}
+
+.input-light {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    width: 250px;
+    background-color: var(--primary-light);
+    color: black;
+}
+
+.input-light:focus {
+    outline: 2px solid var(--primary);
+}

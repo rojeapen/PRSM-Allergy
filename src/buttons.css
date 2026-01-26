@@ -63,3 +63,34 @@
 .btn-tertiary:active {
     transform: translateY(0);
 }
+
+/* Link Button */
+.btn-link {
+    font-size: 1rem;
+    color: var(--primary-dark);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.btn-link:hover {
+    color: #006666;
+}
+
+.btn-link:active {
+    color: #004c4c;
+}
+
+.btn-danger {
+    font-size: 1rem;
+    padding: 0.75rem 2rem;
+    border-radius: 1rem;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-weight: 600;
+    background: #ff4d4f;
+    color: #fff;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+}

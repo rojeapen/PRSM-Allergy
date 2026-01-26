@@ -1,18 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './gallery.css';
-import Gallery1 from "../assets/gallery/gallery1.jpg"
-import Gallery2 from "../assets/gallery/gallery2.jpeg"
-import Gallery3 from "../assets/gallery/gallery3.jpg"
-import Gallery4 from "../assets/gallery/gallery4.jpeg"
-import Gallery5 from "../assets/gallery/gallery5.jpg"
+
 import LeftArrow from '../assets/chevron.left.png';
 import RightArrow from '../assets/chevron.right.png';
+import type { PRSM } from '../constants';
 
 
 
-const Gallery = () => {
+const Gallery = ({ prsm }: { prsm: PRSM }) => {
     const [activeIndex, setActiveIndex] = useState(0);
-    const images = [Gallery1, Gallery2, Gallery3, Gallery4, Gallery5];
+    const images = prsm.galleryPhotos.map(photo => photo.url);
     const thumbs = [...images];
 
     const prevImage = () => {
@@ -22,6 +19,15 @@ const Gallery = () => {
     const nextImage = () => {
         setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
     };
+
+    // Auto-rotate images every 5 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setActiveIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [images.length]);
 
     return (
         <section id="gallery" className="wrap section gallery-section">

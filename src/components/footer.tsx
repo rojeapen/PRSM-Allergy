@@ -1,6 +1,7 @@
+import type { PRSM } from '../constants';
 import './footer.css';
 
-function Footer() {
+function Footer({ prsm }: { prsm: PRSM }) {
     return (
         <footer id="footer" className="footer">
             <div className="footer-container">
@@ -15,9 +16,12 @@ function Footer() {
                     <div className="footer-section">
                         <h4 className="footer-heading">Follow Us</h4>
                         <div className="social-links">
-                            <a href="#" aria-label="Follow us on Twitter">Twitter</a>
-                            <a href="#" aria-label="Follow us on Facebook">Facebook</a>
-                            <a href="#" aria-label="Follow us on Instagram">Instagram</a>
+                            {prsm.socialMediaLinks.map((link) => (
+                                <a key={link.platform} href={link.url} aria-label={`Follow us on ${link.platform}`}>
+                                    {link.platform}
+                                </a>
+                            ))}
+
                         </div>
                     </div>
                 </div>

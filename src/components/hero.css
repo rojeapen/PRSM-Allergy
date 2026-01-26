@@ -98,6 +98,11 @@
     justify-content: center;
 }
 
+.hero-image img {
+    width: 350px;
+    height: auto;
+}
+
 @media (max-width: 900px) {
     .hero {
         flex-direction: column;

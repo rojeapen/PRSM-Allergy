@@ -5,11 +5,11 @@
 }
 
 .event-tile.light {
-    background: linear-gradient(135deg, white 0%, #f0f7fb 100%);
+    background: linear-gradient(135deg, white 0%, #d7f0fe 100%);
 }
 
 .event-tile.white {
-    background: linear-gradient(135deg, white 0%, #f0f7fb 100%);
+    background: linear-gradient(135deg, white 0%, #d7f0fe 100%);
 }
 
 .event-tile:hover {

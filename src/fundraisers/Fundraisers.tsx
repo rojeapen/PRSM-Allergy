@@ -1,14 +1,15 @@
 
 import './Fundraisers.css';
 
-import { StrictMode } from 'react'
+import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import '../index.css'
 import Header from '../components/header';
 
 import FundraiserTile from '../components/fundraiser_tile';
-import { Fundraiser } from '../constants';
+import { Fundraiser, PRSM } from '../constants';
 import Footer from '../components/footer';
+import { getPRSM } from '../api/db';
 
 
 createRoot(document.getElementById('root')!).render(
@@ -18,6 +19,12 @@ createRoot(document.getElementById('root')!).render(
 )
 
 function Fundraisers() {
+  const [prsm, setPrsm] = useState<PRSM | null>(null);
+
+  useEffect(() => {
+    getPRSM().then(data => setPrsm(data));
+  }, []);
+
   const demoFundraisers: Fundraiser[] = [
     new Fundraiser({
       name: "Fundraiser 1",
@@ -41,26 +48,29 @@ function Fundraisers() {
 
 
   return (
-    <>
-      <Header isFundraiserPage={true} />
-      <main className="fundraisers-page">
-        <div className='page-hero'>
-          <h1 className="page-title">Fundraising Initiatives</h1>
-          <p className="page-subtitle">Support our cause and make a meaningful impact. Every contribution helps us reach our mission.</p>
-        </div>
+    prsm ?
+      <>
+        <Header isFundraiserPage={true} />
+        <main className="fundraisers-page">
+          <div className='page-hero'>
+            <h1 className="page-title">Fundraising Initiatives</h1>
+            <p className="page-subtitle">Support our cause and make a meaningful impact. Every contribution helps us reach our mission.</p>
+          </div>
 
-        <div className="fundraisers-list">
-          {demoFundraisers.map((fundraiser, index) => (
-            <FundraiserTile
-              key={index}
-              fundraiser={fundraiser}
-              backgroundColor={index % 2 === 0 ? 'light' : 'white'}
-            />
-          ))}
-        </div>
-      </main>
-      <Footer />
-    </>
+          <div className="fundraisers-list">
+            {prsm.fundraisers.map((fundraiser, index) => (
+              <FundraiserTile
+                key={index}
+                fundraiser={fundraiser}
+                backgroundColor={index % 2 === 0 ? 'light' : 'white'}
+              />
+            ))}
+          </div>
+        </main>
+        <Footer prsm={prsm} />
+      </> : <>
+        <div className='loader-container'><div className='loader'></div></div>
+      </>
   );
 }
 

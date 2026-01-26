@@ -1,14 +1,15 @@
 import './Events.css';
 
-import { StrictMode } from 'react'
+import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import '../index.css'
 import Header from '../components/header';
 
 
-import { Event } from '../constants';
+import { Event, PRSM } from '../constants';
 import EventTile from '../components/event_tile';
 import Footer from '../components/footer';
+import { getPRSM } from '../api/db';
 
 
 createRoot(document.getElementById('root')!).render(
@@ -18,6 +19,13 @@ createRoot(document.getElementById('root')!).render(
 )
 
 function Events() {
+
+    const [prsm, setPrsm] = useState<PRSM | null>(null);
+
+    useEffect(() => {
+        getPRSM().then(data => setPrsm(data));
+    }, []);
+
     const demoEvents: Event[] = [
         new Event({
             title: "Annual Awareness Walk",
@@ -27,8 +35,7 @@ function Events() {
             time: "09:00 AM",
             location: "City Park",
             photoUrl: "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.lifehugger.com%2Fwp-content%2Fuploads%2F2018%2F06%2FGroup-Walk-1024x681.jpg&f=1&nofb=1&ipt=d8c8e9e2e8c2e8e8e8e8e8e8e8e8e8e8&exif=",
-            attendees: 245,
-            capacity: 500
+
         }),
         new Event({
             title: "Research Symposium",
@@ -38,8 +45,7 @@ function Events() {
             time: "01:00 PM",
             location: "Virtual Event",
             photoUrl: "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1552664730-d307ca884978%3Fw%3D1024&f=1&nofb=1&ipt=e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8&exif=",
-            attendees: 1200,
-            capacity: 2000
+
         }),
         new Event({
             title: "Community Education Workshop",
@@ -49,34 +55,36 @@ function Events() {
             time: "06:00 PM",
             location: "Community Center",
             photoUrl: "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1552664730-d307ca884978%3Fw%3D1024&f=1&nofb=1&ipt=e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8e8&exif=",
-            attendees: 120,
-            capacity: 200
+
         }),
     ];
 
 
     return (
-        <>
-            <Header isEventPage={true} />
-            <main className="events-page">
-                <div className='page-hero'>
-                    <h1 className="page-title">Upcoming Events</h1>
-                    <p className="page-subtitle">Join us at educational workshops, awareness walks, and community events. Get involved and make a difference.</p>
-                </div>
+        prsm ?
+            <>
+                <Header isEventPage={true} />
+                <main className="events-page">
+                    <div className='page-hero'>
+                        <h1 className="page-title">Upcoming Events</h1>
+                        <p className="page-subtitle">Join us at educational workshops, awareness walks, and community events. Get involved and make a difference.</p>
+                    </div>
 
-                <div className="events-list">
-                    {demoEvents.map((event, index) => (
-                        <EventTile
-                            key={index}
-                            event={event}
-                            backgroundColor={index % 2 === 0 ? 'light' : 'white'}
-                        />
-                    ))}
-                </div>
-            </main>
-            <Footer />
+                    <div className="events-list">
+                        {demoEvents.map((event, index) => (
+                            <EventTile
+                                key={index}
+                                event={event}
+                                backgroundColor={index % 2 === 0 ? 'light' : 'white'}
+                            />
+                        ))}
+                    </div>
+                </main>
+                <Footer prsm={prsm} />
 
-        </>
+            </> : <>
+                <div className='loader-container'><div className='loader'></div></div>
+            </>
     );
 }
 

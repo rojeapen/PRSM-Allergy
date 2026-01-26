@@ -10,20 +10,33 @@ import Gallery from './components/gallery';
 import Header from './components/header';
 import Hero from './components/hero';
 import Newsletter from './components/newsletter';
+import { useState, useEffect } from 'react';
+import { getPRSM } from './api/db';
+import type { PRSM } from './constants';
 
 function App() {
+  const [prsm, setPrsm] = useState<PRSM | null>(null);
+
+  useEffect(() => {
+    getPRSM().then(data => setPrsm(data));
+  }, []);
+
   return (
-    <>
-      <Header />
-      <Hero />
-      <Gallery />
-      <About />
-      <LatestFundraiser />
-      <Events />
-      <Newsletter />
-      <Contact />
-      <Footer />
-    </>
+    prsm ?
+      <>
+
+        <Header />
+        <Hero prsm={prsm} />
+        <Gallery prsm={prsm} />
+        <About prsm={prsm} />
+        {prsm.fundraisers.find((f) => f.isFeatured) ? <LatestFundraiser featuredFundraiser={prsm.fundraisers.find((f) => f.isFeatured)!} /> : null}
+        <Events />
+        <Newsletter />
+        <Contact />
+        <Footer prsm={prsm} />
+      </> : <>
+        <div className='loader-container'><div className='loader'></div></div>
+      </>
   );
 }
 
