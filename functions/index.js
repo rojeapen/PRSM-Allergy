@@ -180,7 +180,7 @@ exports.sendNewsletter = onCall(async (req) => {
 
     <!-- Preview text (hidden) -->
     <div style="display: none; max-height: 0; overflow: hidden;">
-        Stay updated with the latest from PRSM Allergy Research Foundation &#847; &#847; &#847; &#847;
+        Stay updated with the latest from PRSM Allergy Foundation &#847; &#847; &#847; &#847;
     </div>
 
     <!-- Wrapper Table -->
@@ -201,7 +201,7 @@ exports.sendNewsletter = onCall(async (req) => {
                                     <td align="center">
                                         <!-- Replace with your logo -->
                                         <img src="https://i.ibb.co/yntSMXtV/prsmlogo-removebg-preview.png"
-                                            alt="PRSM Allergy" width="50" height="50"
+                                            alt="PRSM Allergy Foundation" width="50" height="50"
                                             style="display: block; border-radius: 8px;">
                                     </td>
                                 </tr>
