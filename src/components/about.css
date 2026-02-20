@@ -72,3 +72,8 @@
         padding: 1.25rem;
     }
 }
+
+.center {
+    display: flex;
+    justify-content: center;
+}

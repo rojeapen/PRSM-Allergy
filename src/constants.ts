@@ -1,7 +1,7 @@
 import type { DocumentData } from "firebase/firestore";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const ORIGIN = '/PRSM-Allergy/';
+export const ORIGIN = '/';
 
 export class Fundraiser {
     name: string;
@@ -71,6 +71,15 @@ export class Event {
         this.location = location;
         this.photoUrl = photoUrl;
 
+    }
+
+    getFormattedTime(): string {
+        if (!this.time) return '';
+        const [hours, minutes] = this.time.split(':');
+        const hour = parseInt(hours, 10);
+        const meridiem = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${minutes} ${meridiem}`;
     }
 
     toMap(): Record<string, any> {
@@ -153,11 +162,13 @@ export class TeamMember {
     name: string;
     photo: Photo;
     description: string;
+    role: string;
 
-    constructor({ name, photo, description }: { name: string; photo: Photo; description: string }) {
+    constructor({ name, photo, description, role }: { name: string; photo: Photo; description: string; role: string }) {
         this.name = name;
         this.photo = photo;
         this.description = description;
+        this.role = role;
     }
 
     toMap(): Record<string, any> {
@@ -165,6 +176,7 @@ export class TeamMember {
             name: this.name,
             photo: this.photo.toMap(),
             description: this.description,
+            role: this.role,
         };
     }
 
@@ -173,6 +185,7 @@ export class TeamMember {
             name: data.name,
             photo: Photo.fromMap(data.photo),
             description: data.description,
+            role: data.role ?? '',
         });
     }
 }
@@ -198,6 +211,48 @@ export class AboutTile {
             title: data.title,
             description: data.description,
         });
+    }
+}
+
+export class Article {
+    id: string;
+    title: string;
+    body: string;
+    createdAt: string;
+    updatedAt: string;
+
+    constructor({ id, title, body, createdAt, updatedAt }: {
+        id: string; title: string; body: string; createdAt: string; updatedAt: string;
+    }) {
+        this.id = id;
+        this.title = title;
+        this.body = body;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    toMap(): Record<string, any> {
+        return {
+            title: this.title,
+            body: this.body,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+        };
+    }
+
+    static fromMap(data: DocumentData, id: string): Article {
+        return new Article({
+            id,
+            title: data.title,
+            body: data.body,
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt,
+        });
+    }
+
+    getDisplayDate(): string {
+        const date = new Date(this.updatedAt);
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     }
 }
 

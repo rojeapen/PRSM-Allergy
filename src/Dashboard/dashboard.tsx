@@ -18,8 +18,10 @@ import '../index.css'
 import "./dashboard.css"
 import Header from '../components/header'
 import { isUserLoggedIn } from '../api/auth'
-import { AboutTile, Photo, PRSM, SocialMediaLink } from '../constants'
-import { deletePhoto, getPRSM, updatePRSM, uploadPhoto } from '../api/db'
+import { AboutTile, Article, Photo, PRSM, SocialMediaLink } from '../constants'
+import { deletePhoto, getArticlesFresh, getSubscribers, getPRSMFresh, updatePRSM, uploadPhoto } from '../api/db'
+import { getFunctions, httpsCallable } from 'firebase/functions'
+import { app } from '../api/firebase'
 
 
 
@@ -63,6 +65,14 @@ function App() {
     const [canSaveGallery, setCanSaveGallery] = useState(false)
     const [loadingSaveGallery, setLoadingSaveGallery] = useState(false)
 
+    // Newsletter state
+    const [articles, setArticles] = useState<Article[]>([]);
+    const [selectedArticleIdx, setSelectedArticleIdx] = useState<number>(0);
+    const [selectedFundraiserIdx, setSelectedFundraiserIdx] = useState<number>(0);
+    const [sendingNewsletter, setSendingNewsletter] = useState(false);
+    const [newsletterStatus, setNewsletterStatus] = useState<string | null>(null);
+    const [excludedEventIdxs, setExcludedEventIdxs] = useState<Set<number>>(new Set());
+
     // About section state
     const [aboutSubtitle, setAboutSubtitle] = useState("");
     const [aboutTiles, setAboutTiles] = useState<AboutTile[]>([]);
@@ -76,8 +86,9 @@ function App() {
 
     useEffect(() => {
         isUserLoggedIn((isLoggedIn) => { });
-        getPRSM().then((data) => {
+        getPRSMFresh().then((data) => {
             setPrsm(data!);
+            setExcludedEventIdxs(new Set());
             setTitle(data!.landingPageTitle);
             setSubtitle(data!.landingPageSubtitle);
             setBackgroundImage(data!.landingPagePhoto.url);
@@ -87,6 +98,9 @@ function App() {
             setSocialLinks(socials);
             setAboutSubtitle(data!.aboutSubtitle || "");
             setAboutTiles((data!.aboutTiles || []).map((tile: any) => new AboutTile({ title: tile.title, description: tile.description })));
+        });
+        getArticlesFresh().then((data) => {
+            setArticles(data);
         });
     }, [])
     // About subtitle handlers
@@ -271,6 +285,56 @@ function App() {
         setCanSaveSocials(false);
         setLoadingSaveSocials(false);
         setPrsm(PRSM.fromMap(prsm!.toMap()));
+    };
+
+    const handleSendNewsletter = async () => {
+        if (!prsm || articles.length === 0) return;
+        setSendingNewsletter(true);
+        setNewsletterStatus(null);
+        try {
+            const subscribers = await getSubscribers();
+            if (subscribers.length === 0) {
+                setNewsletterStatus("No subscribers found.");
+                setSendingNewsletter(false);
+                return;
+            }
+
+            const article = articles[selectedArticleIdx];
+            const fundraiser = prsm.fundraisers[selectedFundraiserIdx];
+            const getExcerpt = (html: string, maxLength: number = 150): string => {
+                const div = document.createElement('div');
+                div.innerHTML = html;
+                const text = div.textContent || div.innerText || '';
+                return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+            };
+
+            const payload = {
+                emails: subscribers.join(","),
+                title: "PRSM Allergy Monthly Newsletter",
+                articleTitle: article.title,
+                articlePreview: getExcerpt(article.body),
+                articleLink: `${window.location.origin}/Articles/detail.html?id=${article.id}`,
+                events: prsm.events
+                    .filter((_, idx) => !excludedEventIdxs.has(idx))
+                    .map(event => ({
+                        date: `${event.displayDate} • ${new Date('1970-01-01T' + event.time).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`,
+                        title: event.title,
+                        description: event.description,
+                    })),
+                fundraiserTitle: fundraiser?.name || "",
+                fundraiserDescription: fundraiser?.description || "",
+                fundraiserLink: fundraiser?.link || "#",
+            };
+
+            const functions = getFunctions(app);
+            const sendNewsletter = httpsCallable(functions, 'sendNewsletter');
+            await sendNewsletter(payload);
+            setNewsletterStatus("Newsletter sent successfully!");
+        } catch (error) {
+            console.error("Error sending newsletter:", error);
+            setNewsletterStatus("Failed to send newsletter. Please try again.");
+        }
+        setSendingNewsletter(false);
     };
 
     return (
@@ -519,6 +583,125 @@ function App() {
                             {canSaveSocials && !loadingSaveSocials &&
                                 <button className='btn-primary' onClick={saveSocialsSection}>Save Changes</button>}
                             {loadingSaveSocials && <div className='loader'></div>}
+                        </div>
+                    </section>
+
+                    {/* Send Newsletter Section */}
+                    <section className={`dashboard-section white`}>
+                        <div className='section-title'>
+                            <h1>Send Newsletter</h1>
+                            <p>Send a newsletter email to all subscribers with a featured article, upcoming events, and a fundraiser.</p>
+                        </div>
+                        <div className='socials-dashboard-content'>
+                            <div style={{ width: '100%', maxWidth: 600 }}>
+                                <div className='section-item' style={{ marginBottom: '1.5rem' }}>
+                                    <label htmlFor="newsletter-article" style={{ minWidth: 120 }}>Article:</label>
+                                    <select
+                                        id="newsletter-article"
+                                        className='input-light'
+                                        style={{ flex: 1 }}
+                                        value={selectedArticleIdx}
+                                        onChange={e => setSelectedArticleIdx(Number(e.target.value))}
+                                    >
+                                        {articles.length === 0 && <option>No articles available</option>}
+                                        {articles.map((article, idx) => (
+                                            <option key={article.id} value={idx}>{article.title}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div style={{ marginBottom: '1.5rem' }}>
+                                    <label style={{ fontWeight: 600 }}>Events ({prsm.events.length - excludedEventIdxs.size}/{prsm.events.length}):</label>
+                                    <div style={{ marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        {prsm.events.length === 0 && <p style={{ color: '#888' }}>No events to include.</p>}
+                                        {prsm.events.map((event, idx) => {
+                                            const excluded = excludedEventIdxs.has(idx);
+                                            return (
+                                                <div key={idx} style={{
+                                                    background: excluded ? '#f0f0f0' : '#f6fbfd',
+                                                    borderRadius: 8,
+                                                    padding: '0.75rem 1rem',
+                                                    borderLeft: `3px solid ${excluded ? '#ccc' : '#008080'}`,
+                                                    opacity: excluded ? 0.5 : 1,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'space-between',
+                                                }}>
+                                                    <div>
+                                                        <strong>{event.title}</strong>
+                                                        <br />
+                                                        <span style={{ fontSize: '0.85rem', color: '#555' }}>
+                                                            {event.displayDate} • {event.time}
+                                                        </span>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            setExcludedEventIdxs(prev => {
+                                                                const next = new Set(prev);
+                                                                if (excluded) next.delete(idx);
+                                                                else next.add(idx);
+                                                                return next;
+                                                            });
+                                                        }}
+                                                        style={{
+                                                            background: excluded ? '#008080' : 'transparent',
+                                                            color: excluded ? '#fff' : '#e74c3c',
+                                                            border: excluded ? 'none' : '1px solid #e74c3c',
+                                                            borderRadius: 6,
+                                                            padding: '0.3rem 0.7rem',
+                                                            cursor: 'pointer',
+                                                            fontSize: '0.8rem',
+                                                            fontWeight: 600,
+                                                            whiteSpace: 'nowrap',
+                                                            marginLeft: '0.75rem',
+                                                        }}
+                                                    >
+                                                        {excluded ? 'Include' : 'Remove'}
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div className='section-item' style={{ marginBottom: '1.5rem' }}>
+                                    <label htmlFor="newsletter-fundraiser" style={{ minWidth: 120 }}>Fundraiser:</label>
+                                    <select
+                                        id="newsletter-fundraiser"
+                                        className='input-light'
+                                        style={{ flex: 1 }}
+                                        value={selectedFundraiserIdx}
+                                        onChange={e => setSelectedFundraiserIdx(Number(e.target.value))}
+                                    >
+                                        {prsm.fundraisers.length === 0 && <option>No fundraisers available</option>}
+                                        {prsm.fundraisers.map((fundraiser, idx) => (
+                                            <option key={idx} value={idx}>{fundraiser.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {!sendingNewsletter && (
+                                    <button
+                                        className='btn-primary'
+                                        onClick={handleSendNewsletter}
+                                        disabled={articles.length === 0}
+                                        style={{ width: '100%', padding: '0.75rem', fontSize: '1rem' }}
+                                    >
+                                        Send Newsletter
+                                    </button>
+                                )}
+                                {sendingNewsletter && <div className='loader'></div>}
+                                {newsletterStatus && (
+                                    <p style={{
+                                        marginTop: '1rem',
+                                        textAlign: 'center',
+                                        color: newsletterStatus.includes('success') ? '#008080' : '#e74c3c',
+                                        fontWeight: 600,
+                                    }}>
+                                        {newsletterStatus}
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     </section>
                 </>

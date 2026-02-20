@@ -1,23 +1,8 @@
-import { ORIGIN } from '../constants';
+import { ORIGIN, Event } from '../constants';
 import './events.css';
 
-function Events() {
-    const eventsList = [
-        {
-            id: 1,
-            date: '2026-04-12',
-            displayDate: 'Apr 12, 2026',
-            title: 'Annual Awareness Walk',
-            location: 'City Park'
-        },
-        {
-            id: 2,
-            date: '2026-06-22',
-            displayDate: 'Jun 22, 2026',
-            title: 'Research Symposium',
-            location: '(virtual)'
-        }
-    ];
+function Events({ upcomingEvents }: { upcomingEvents: Event[] }) {
+
 
     return (
         <section id="events" className="events">
@@ -25,8 +10,11 @@ function Events() {
                 <h3>Upcoming Events</h3>
                 <p className="events-description">Join fundraisers, awareness walks, and educational webinars.</p>
                 <div className="events-grid">
-                    {eventsList.map((event) => (
-                        <div key={event.id} className="event-card">
+                    {upcomingEvents.map((event, i) => (
+                        <div key={event.title} className="event-card" onClick={() => {
+                            console.log("Clicked event:", event);
+                            window.location.href = ORIGIN + `Events/detail.html?id=${i}`;
+                        }}>
                             <time dateTime={event.date} className="event-date">{event.displayDate}</time>
                             <h4 className="event-title">{event.title}</h4>
                             <p className="event-location">{event.location}</p>

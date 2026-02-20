@@ -1,16 +1,23 @@
 import { useState } from 'react';
 import './newsletter.css';
+import { subscribeNewsletter } from '../api/db';
 
 function Newsletter() {
     const [email, setEmail] = useState('');
-    const [submitted, setSubmitted] = useState(false);
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (email) {
-            setSubmitted(true);
+        if (!email) return;
+        setStatus('loading');
+        try {
+            await subscribeNewsletter(email);
+            setStatus('success');
             setEmail('');
-            setTimeout(() => setSubmitted(false), 3000);
+            setTimeout(() => setStatus('idle'), 3000);
+        } catch {
+            setStatus('error');
+            setTimeout(() => setStatus('idle'), 3000);
         }
     };
 
@@ -28,12 +35,14 @@ function Newsletter() {
                             onChange={(e) => setEmail(e.target.value)}
                             required
                             className="newsletter-input"
+                            disabled={status === 'loading'}
                         />
-                        <button type="submit" className="btn-secondary">
-                            Subscribe
+                        <button type="submit" className="btn-secondary" disabled={status === 'loading'}>
+                            {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
                         </button>
                     </form>
-                    {submitted && <p className="newsletter-success">Thank you for subscribing!</p>}
+                    {status === 'success' && <p className="newsletter-success">Thank you for subscribing!</p>}
+                    {status === 'error' && <p className="newsletter-error">Something went wrong. Please try again.</p>}
                 </div>
             </div>
         </section>

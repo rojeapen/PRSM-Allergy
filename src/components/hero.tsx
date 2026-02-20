@@ -1,4 +1,4 @@
-import type { PRSM } from "../constants";
+import { PRSM, ORIGIN } from "../constants";
 import "./hero.css";
 
 const Hero = ({ prsm }: { prsm: PRSM }) => {
@@ -10,8 +10,19 @@ const Hero = ({ prsm }: { prsm: PRSM }) => {
                     {prsm.landingPageSubtitle}
                 </p>
                 <div className="hero-buttons">
-                    <button className="hero-btn donate">Donate Now</button>
-                    <button className="hero-btn learn">Learn More</button>
+                    <button className="hero-btn donate" onClick={() => {
+                        window.location.href = ORIGIN + "Fundraisers/";
+                    }}>Donate Now</button>
+                    <button className="hero-btn learn" onClick={() => {
+                        const aboutSection = document.getElementById('about');
+                        if (aboutSection) {
+                            const headerElement = document.querySelector('.header') as HTMLElement;
+                            const headerOffset = headerElement?.offsetHeight ?? 0;
+                            const elementPosition = aboutSection.getBoundingClientRect().top;
+                            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                        }
+                    }}>Learn More</button>
                 </div>
             </div>
             <div className="hero-image hero-image-light">

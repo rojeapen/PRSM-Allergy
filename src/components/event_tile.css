@@ -2,6 +2,7 @@
     padding: 3rem 1rem;
     background: white;
     transition: all 0.3s ease;
+    cursor: pointer;
 }
 
 .event-tile.light {
@@ -25,6 +26,7 @@
     gap: 3rem;
     align-items: center;
     position: relative;
+    cursor: pointer;
 }
 
 .event-tile .event-image {

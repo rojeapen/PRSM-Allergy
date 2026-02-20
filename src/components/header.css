@@ -13,10 +13,16 @@
   gap: 1rem;
 }
 
+.Logo {
+
+  cursor: pointer;
+}
+
 .header-text {
   display: flex;
   flex-direction: column;
   flex: 1;
+  cursor: pointer;
 }
 
 .header-title {

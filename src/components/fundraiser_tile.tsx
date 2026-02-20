@@ -1,4 +1,4 @@
-import type { Fundraiser } from '../constants';
+import { Fundraiser } from '../constants';
 import './fundraiser_tile.css';
 
 type FundraiserTileProps = {
@@ -12,12 +12,12 @@ function FundraiserTile({ fundraiser, backgroundColor }: FundraiserTileProps) {
         <section id="fundraiser-tile" className={`fundraiser-tile ${backgroundColor}`}>
             <div className="fundraiser-tile-container">
                 <div className="fundraiser-image">
-                    <img src={fundraiser.photoUrl} alt={fundraiser.name} />
+                    <img src={fundraiser.photo.url} alt={fundraiser.name} />
 
                 </div>
 
                 <div className="fundraiser-content">
-                    <p className="fundraiser-label">Featured Campaign</p>
+
                     <h3>{fundraiser.name}</h3>
                     <p className="fundraiser-description">
                         {fundraiser.description}

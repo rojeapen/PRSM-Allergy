@@ -48,11 +48,19 @@
     box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
 }
 
-.newsletter-success {
+.newsletter-success,
+.newsletter-error {
     margin-top: 1rem;
-    color: rgba(255, 255, 255, 0.9);
     font-weight: 600;
     animation: slideIn 0.3s ease;
+}
+
+.newsletter-success {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.newsletter-error {
+    color: #ffb3b3;
 }
 
 @keyframes slideIn {

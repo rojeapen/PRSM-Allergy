@@ -71,10 +71,11 @@ function Events() {
                     </div>
 
                     <div className="events-list">
-                        {demoEvents.map((event, index) => (
+                        {prsm.events.map((event, index) => (
                             <EventTile
                                 key={index}
                                 event={event}
+                                index={index}
                                 backgroundColor={index % 2 === 0 ? 'light' : 'white'}
                             />
                         ))}

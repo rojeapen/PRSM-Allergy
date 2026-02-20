@@ -1,0 +1,132 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    background: #f8fafb;
+}
+
+.articles-page {
+    background: linear-gradient(135deg, #f8fafb 0%, #f0f4f8 100%);
+    min-height: 100vh;
+}
+
+.articles-page .page-hero {
+    background: linear-gradient(135deg, #0A6C95 0%, var(--primary) 100%);
+    color: white;
+    text-align: center;
+    padding: 4rem 1rem 2rem;
+}
+
+.articles-page .page-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    padding: 3rem 1rem 1rem;
+    text-align: center;
+    margin: 0;
+    color: white;
+    letter-spacing: -0.5px;
+}
+
+.articles-page .page-subtitle {
+    font-size: 1.1rem;
+    color: white;
+    text-align: center;
+    padding: 0 1rem 2rem 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.articles-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    padding: 3rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.article-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(10, 108, 149, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.article-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(10, 108, 149, 0.15);
+}
+
+.article-card-content {
+    padding: 1.5rem;
+}
+
+.article-card-date {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.article-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 0.75rem 0;
+}
+
+.article-card-excerpt {
+    font-size: 0.95rem;
+    color: #666;
+    line-height: 1.6;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.articles-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4rem 2rem;
+}
+
+.articles-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    background-color: white;
+}
+
+@media only screen and (max-width: 768px) {
+    .articles-page .page-hero {
+        padding: 1rem 1rem 1.5rem;
+    }
+
+    .articles-page .page-title {
+        font-size: 2.5rem;
+    }
+
+    .articles-page .page-subtitle {
+        font-size: 1rem;
+    }
+
+    .articles-list {
+        padding: 2rem 1rem;
+        gap: 1.5rem;
+        grid-template-columns: 1fr;
+    }
+}

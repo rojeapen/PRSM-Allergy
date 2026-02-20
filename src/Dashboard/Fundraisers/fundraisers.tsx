@@ -5,7 +5,7 @@ import "./Fundraisers.css"
 import Header from '../../components/header'
 import { isUserLoggedIn } from '../../api/auth'
 import { Fundraiser, PRSM } from '../../constants'
-import { getPRSM, updatePRSM, uploadPhoto, deletePhoto } from '../../api/db'
+import { getPRSMFresh, updatePRSM, uploadPhoto, deletePhoto } from '../../api/db'
 import { Photo } from '../../constants'
 
 createRoot(document.getElementById('root')!).render(
@@ -47,7 +47,7 @@ function App() {
 
     useEffect(() => {
         isUserLoggedIn((isLoggedIn) => { });
-        getPRSM().then((data) => {
+        getPRSMFresh().then((data) => {
             const fundraisersList = data!.fundraisers.map((fundraiser, idx) => {
                 console.log("Loaded fundraiser:", fundraiser);
                 return new FundraiserEdit({
@@ -176,7 +176,7 @@ function App() {
 
     return (
         <>
-            <Header isDashboardPage={true} />
+            <Header isDashboardFundraisersPage={true} />
             {prsm ? (
                 <>
                     <section className={`dashboard-section light`}>

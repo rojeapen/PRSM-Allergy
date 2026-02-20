@@ -12,14 +12,24 @@ import Hero from './components/hero';
 import Newsletter from './components/newsletter';
 import { useState, useEffect } from 'react';
 import { getPRSM } from './api/db';
-import type { PRSM } from './constants';
+import type { PRSM, Event } from './constants';
 
 function App() {
   const [prsm, setPrsm] = useState<PRSM | null>(null);
 
+
   useEffect(() => {
     getPRSM().then(data => setPrsm(data));
   }, []);
+
+  const getUpcomingEvents = (events: Event[]) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sortedEvents = events.sort((a, b) => new Date(a.date + 'T00:00:00').getTime() - new Date(b.date + 'T00:00:00').getTime());
+    const upcomingEvents = sortedEvents.filter(event => new Date(event.date + 'T00:00:00') >= today);
+    return upcomingEvents.slice(0, 3);
+  }
+
 
   return (
     prsm ?
@@ -30,7 +40,7 @@ function App() {
         <Gallery prsm={prsm} />
         <About prsm={prsm} />
         {prsm.fundraisers.find((f) => f.isFeatured) ? <LatestFundraiser featuredFundraiser={prsm.fundraisers.find((f) => f.isFeatured)!} /> : null}
-        <Events />
+        {getUpcomingEvents(prsm.events).length > 0 ? <Events upcomingEvents={getUpcomingEvents(prsm.events)} /> : null}
         <Newsletter />
         <Contact />
         <Footer prsm={prsm} />

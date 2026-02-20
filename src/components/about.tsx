@@ -1,4 +1,4 @@
-import type { PRSM } from '../constants';
+import { ORIGIN, type PRSM } from '../constants';
 import './about.css';
 
 function About({ prsm }: { prsm: PRSM }) {
@@ -14,7 +14,11 @@ function About({ prsm }: { prsm: PRSM }) {
                             <p>{tile.description}</p>
                         </article>
                     ))}
-                   
+
+                </div>
+                <div className='center'>
+                    <button className='btn-secondary' onClick={() => window.location.href = ORIGIN + "Team/"}>Meet the Team</button>
+
                 </div>
             </div>
         </section>

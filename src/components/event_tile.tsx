@@ -1,17 +1,20 @@
-import type { Event } from '../constants';
+import  { ORIGIN, Event } from '../constants';
 import './event_tile.css';
 
 type EventTileProps = {
     event: Event;
     backgroundColor: string;
+    index: number;
 }
 
-function EventTile({ event, backgroundColor }: EventTileProps) {
+function EventTile({ event, backgroundColor, index }: EventTileProps) {
     const attendancePercentage = event.attendees && event.capacity ?
         Math.round((event.attendees / event.capacity) * 100) : 0;
 
     return (
-        <section id="event-tile" className={`event-tile ${backgroundColor}`}>
+        <section id="event-tile" className={`event-tile ${backgroundColor}`} onClick={() => {
+            window.location.href = ORIGIN + `Events/detail.html?id=${index}`;
+        }}>
             <div className="event-tile-container">
                 <div className="event-image">
                     <img src={event.photoUrl} alt={event.title} />
@@ -25,11 +28,11 @@ function EventTile({ event, backgroundColor }: EventTileProps) {
                         </span>
                         <span className="event-time">
                             <span className="event-icon">🕐</span>
-                            {event.time}
+                            {event.getFormattedTime()}
                         </span>
                     </div>
 
-                    <p className="event-label">Featured Event</p>
+
                     <h3>{event.title}</h3>
                     <p className="event-description">
                         {event.description}

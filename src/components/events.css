@@ -3,8 +3,13 @@
     padding-right: 3rem;
     padding-top: 1rem;
     padding-bottom: 2rem;
-    background: white;
+    background: var(--primary-light);
 }
+
+body:has(.latest-fundraiser) .events {
+    background: white !important;
+}
+
 
 .events-container {
     max-width: 1200px;
@@ -42,6 +47,7 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+    margin-bottom: 4px;
 }
 
 .event-card::before {
@@ -55,6 +61,7 @@
     border-radius: 8px;
     z-index: 0;
     transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
 }
 
 .event-card:hover::before {
@@ -77,6 +84,8 @@
 .event-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 16px rgba(10, 108, 149, 0.15);
+    background-color: var(--primary, #0A6C95);
+
 }
 
 .event-card:hover .event-date {
