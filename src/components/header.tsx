@@ -186,7 +186,7 @@ function Header({ isFundraiserPage = false, isEventPage = false, isArticlePage =
                         window.location.href = ORIGIN;
                 }}>
                     <h2 className="header-title">PRSM Allergy {isDashboardPage || isDashboardEventsPage || isDashboardFundraisersPage || isDashboardTeamPage || isDashboardArticlesPage ? "Dashboard" : ""}</h2>
-                    <h3 className="header-subtitle">Fundraising and promoting awareness for allergic & immunologic diseases</h3>
+                    <h3 className="header-subtitle">Accelerating progress in allergy and immune health.</h3>
                 </div>
                 <nav className="header-nav">
                     {menuItems.map(item => (
