@@ -220,15 +220,17 @@ export class Article {
     body: string;
     createdAt: string;
     updatedAt: string;
+    mainImage?: Photo;
 
-    constructor({ id, title, body, createdAt, updatedAt }: {
-        id: string; title: string; body: string; createdAt: string; updatedAt: string;
+    constructor({ id, title, body, createdAt, updatedAt, mainImage }: {
+        id: string; title: string; body: string; createdAt: string; updatedAt: string; mainImage?: Photo;
     }) {
         this.id = id;
         this.title = title;
         this.body = body;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.mainImage = mainImage;
     }
 
     toMap(): Record<string, any> {
@@ -237,6 +239,7 @@ export class Article {
             body: this.body,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
+            ...(this.mainImage ? { mainImage: this.mainImage.toMap() } : {}),
         };
     }
 
@@ -247,6 +250,7 @@ export class Article {
             body: data.body,
             createdAt: data.createdAt,
             updatedAt: data.updatedAt,
+            mainImage: data.mainImage ? Photo.fromMap(data.mainImage) : undefined,
         });
     }
 

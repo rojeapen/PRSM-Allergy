@@ -4,8 +4,8 @@ import '../../index.css'
 import "./articles.css"
 import Header from '../../components/header'
 import { isUserLoggedIn } from '../../api/auth'
-import { Article } from '../../constants'
-import { getArticlesFresh, createArticle, updateArticle, deleteArticle } from '../../api/db'
+import { Article, Photo } from '../../constants'
+import { getArticlesFresh, createArticle, updateArticle, deleteArticle, uploadPhoto, deletePhoto } from '../../api/db'
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -17,11 +17,17 @@ class ArticleEdit {
     id?: string;
     title: string;
     body: string;
+    mainImageFile?: File;
+    mainImageUrl?: string;
+    mainImageId?: string;
 
-    constructor(params: { id?: string; title: string; body: string }) {
+    constructor(params: { id?: string; title: string; body: string; mainImageFile?: File; mainImageUrl?: string; mainImageId?: string }) {
         this.id = params.id;
         this.title = params.title;
         this.body = params.body;
+        this.mainImageFile = params.mainImageFile;
+        this.mainImageUrl = params.mainImageUrl;
+        this.mainImageId = params.mainImageId;
     }
 }
 
@@ -128,12 +134,17 @@ function App() {
         if (!newArticle.title.trim() || !newArticle.body.trim()) return;
         setLoadingSave(true);
         const now = new Date().toISOString();
+        let mainImage: Photo | undefined;
+        if (newArticle.mainImageFile) {
+            mainImage = await uploadPhoto(newArticle.mainImageFile, `Article_${newArticle.title}_${Date.now()}`);
+        }
         const article = new Article({
             id: '',
             title: newArticle.title,
             body: newArticle.body,
             createdAt: now,
             updatedAt: now,
+            mainImage,
         });
         await createArticle(article);
         await refreshArticles();
@@ -143,7 +154,13 @@ function App() {
 
     const handleEditArticle = (article: Article) => {
         setEditingId(article.id);
-        setEditingArticle(new ArticleEdit({ id: article.id, title: article.title, body: article.body }));
+        setEditingArticle(new ArticleEdit({
+            id: article.id,
+            title: article.title,
+            body: article.body,
+            mainImageUrl: article.mainImage?.url,
+            mainImageId: article.mainImage?.id,
+        }));
     };
 
     const handleSaveArticle = async () => {
@@ -151,12 +168,26 @@ function App() {
         setLoadingSave(true);
         const now = new Date().toISOString();
         const original = articles.find(a => a.id === editingId);
+
+        let mainImage: Photo | undefined = original?.mainImage;
+
+        if (editingArticle.mainImageFile) {
+            if (original?.mainImage) {
+                await deletePhoto(original.mainImage);
+            }
+            mainImage = await uploadPhoto(editingArticle.mainImageFile, `Article_${editingArticle.title}_${Date.now()}`);
+        } else if (!editingArticle.mainImageUrl && original?.mainImage) {
+            await deletePhoto(original.mainImage);
+            mainImage = undefined;
+        }
+
         const updated = new Article({
             id: editingId,
             title: editingArticle.title,
             body: editingArticle.body,
             createdAt: original?.createdAt || now,
             updatedAt: now,
+            mainImage,
         });
         await updateArticle(editingId, updated);
         await refreshArticles();
@@ -167,6 +198,10 @@ function App() {
 
     const handleDeleteArticle = async (id: string) => {
         setLoadingSave(true);
+        const article = articles.find(a => a.id === id);
+        if (article?.mainImage) {
+            await deletePhoto(article.mainImage);
+        }
         await deleteArticle(id);
         await refreshArticles();
         if (editingId === id) {
@@ -214,6 +249,35 @@ function App() {
                                                 />
                                             </div>
                                             <div className="article-form-group">
+                                                <label>Main Image:</label>
+                                                {(editingArticle?.mainImageFile || editingArticle?.mainImageUrl) && (
+                                                    <div style={{ marginBottom: '0.5rem' }}>
+                                                        <img
+                                                            src={editingArticle.mainImageFile ? URL.createObjectURL(editingArticle.mainImageFile) : editingArticle.mainImageUrl}
+                                                            alt="Preview"
+                                                            style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, objectFit: 'cover' }}
+                                                        />
+                                                        <button
+                                                            className="btn-danger"
+                                                            style={{ marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
+                                                            onClick={() => setEditingArticle(new ArticleEdit({ ...editingArticle!, mainImageFile: undefined, mainImageUrl: undefined, mainImageId: undefined }))}
+                                                        >
+                                                            Remove Image
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="input-light"
+                                                    onChange={(e) => {
+                                                        if (e.target.files && e.target.files[0]) {
+                                                            setEditingArticle(new ArticleEdit({ ...editingArticle!, mainImageFile: e.target.files[0] }));
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="article-form-group">
                                                 <label>Body:</label>
                                                 <RichTextEditor
                                                     key={`edit-${article.id}`}
@@ -257,6 +321,35 @@ function App() {
                                     placeholder="Article title"
                                     value={newArticle.title}
                                     onChange={e => setNewArticle(new ArticleEdit({ ...newArticle, title: e.target.value }))}
+                                />
+                            </div>
+                            <div className="article-form-group">
+                                <label>Main Image:</label>
+                                {newArticle.mainImageFile && (
+                                    <div style={{ marginBottom: '0.5rem' }}>
+                                        <img
+                                            src={URL.createObjectURL(newArticle.mainImageFile)}
+                                            alt="Preview"
+                                            style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, objectFit: 'cover' }}
+                                        />
+                                        <button
+                                            className="btn-danger"
+                                            style={{ marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
+                                            onClick={() => setNewArticle(new ArticleEdit({ ...newArticle, mainImageFile: undefined }))}
+                                        >
+                                            Remove Image
+                                        </button>
+                                    </div>
+                                )}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="input-light"
+                                    onChange={(e) => {
+                                        if (e.target.files && e.target.files[0]) {
+                                            setNewArticle(new ArticleEdit({ ...newArticle, mainImageFile: e.target.files[0] }));
+                                        }
+                                    }}
                                 />
                             </div>
                             <div className="article-form-group">

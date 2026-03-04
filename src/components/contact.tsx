@@ -21,6 +21,9 @@ function Contact() {
         e.preventDefault();
         if (formData.name && formData.email && formData.message) {
             setSubmitted(true);
+            let subject = `Contact Form Submission from ${formData.name}`;
+            let body = `${formData.message}`;
+            window.open(`mailto:contact@prsmallergy.org?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
             setFormData({ name: '', email: '', message: '' });
             setTimeout(() => setSubmitted(false), 3000);
         }

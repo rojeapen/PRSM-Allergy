@@ -9,7 +9,7 @@ function Footer({ prsm }: { prsm: PRSM }) {
                     <div className="footer-section">
                         <p className="footer-title">© PRSM Allergy Foundation.</p>
                         <p className="footer-text">
-                            PRSM is an unincorporated nonprofit association. 100% of donations go directly to the external allergy research organizations we support.
+                            PRSM Allergy Foundation is an unincorporated nonprofit association. 100% of donations go directly to the external allergy research organizations we support.
                         </p>
                     </div>
 

@@ -240,18 +240,31 @@ export async function getArticle(id: string): Promise<Article | null> {
 
 export async function createArticle(article: Article): Promise<string> {
     const docRef = await addDoc(collection(db, "articles"), article.toMap());
-    clearArticlesCache();
+    // Update cache with the new article
+    const cached = getCachedArticles();
+    if (cached) {
+        const newArticle = new Article({ ...article, id: docRef.id });
+        setCacheArticles([newArticle, ...cached]);
+    }
     return docRef.id;
 }
 
 export async function updateArticle(id: string, article: Article): Promise<void> {
     await updateDoc(doc(db, "articles", id), article.toMap());
-    clearArticlesCache();
+    // Update cache with the modified article
+    const cached = getCachedArticles();
+    if (cached) {
+        setCacheArticles(cached.map(a => a.id === id ? new Article({ ...article, id }) : a));
+    }
 }
 
 export async function deleteArticle(id: string): Promise<void> {
     await deleteDoc(doc(db, "articles", id));
-    clearArticlesCache();
+    // Update cache by removing the deleted article
+    const cached = getCachedArticles();
+    if (cached) {
+        setCacheArticles(cached.filter(a => a.id !== id));
+    }
 }
 
 // Newsletter subscribers

@@ -41,6 +41,9 @@ function ArticleDetailPage() {
                             <span className="article-back-link" onClick={() => window.location.href = ORIGIN + 'Articles/'}>
                                 &larr; Back to Articles
                             </span>
+                            {article.mainImage && (
+                                <img className="article-detail-main-image" src={article.mainImage.url} alt={article.title} />
+                            )}
                             <div className="article-detail-body"
                                 dangerouslySetInnerHTML={{ __html: article.body }} />
                         </div>
