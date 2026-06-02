@@ -49,10 +49,13 @@ export class Event {
     time: string;
     location: string;
     photoUrl: string;
+    photoPosX: number;
+    photoPosY: number;
+    photoZoom: number;
 
 
     constructor({
-        title, description, date, displayDate, time, location, photoUrl
+        title, description, date, displayDate, time, location, photoUrl, photoPosX, photoPosY, photoZoom
     }: {
         title: string;
         description: string;
@@ -61,6 +64,9 @@ export class Event {
         time: string;
         location: string;
         photoUrl: string;
+        photoPosX?: number;
+        photoPosY?: number;
+        photoZoom?: number;
 
     }) {
         this.title = title;
@@ -70,6 +76,9 @@ export class Event {
         this.time = time;
         this.location = location;
         this.photoUrl = photoUrl;
+        this.photoPosX = photoPosX ?? 50;
+        this.photoPosY = photoPosY ?? 50;
+        this.photoZoom = photoZoom ?? 1;
 
     }
 
@@ -91,6 +100,9 @@ export class Event {
             time: this.time,
             location: this.location,
             photoUrl: this.photoUrl,
+            photoPosX: this.photoPosX,
+            photoPosY: this.photoPosY,
+            photoZoom: this.photoZoom,
 
         };
     }
@@ -104,6 +116,9 @@ export class Event {
             time: data.time,
             location: data.location,
             photoUrl: data.photoUrl,
+            photoPosX: data.photoPosX,
+            photoPosY: data.photoPosY,
+            photoZoom: data.photoZoom,
 
         });
     }
@@ -271,6 +286,11 @@ export class PRSM {
     teamMembers: TeamMember[];
     aboutSubtitle: string;
     aboutTiles: AboutTile[];
+    upcomingEventsSubtitle?: string;
+    fundraisersSubtitle?: string;
+    articlesSubtitle?: string;
+    teamSubtitle?: string;
+    ourStory?: string;
 
     constructor({
         events,
@@ -283,6 +303,11 @@ export class PRSM {
         teamMembers,
         aboutSubtitle,
         aboutTiles,
+        upcomingEventsSubtitle,
+        fundraisersSubtitle,
+        articlesSubtitle,
+        teamSubtitle,
+        ourStory,
     }: {
         events: Event[];
         fundraisers: Fundraiser[];
@@ -294,6 +319,11 @@ export class PRSM {
         teamMembers: TeamMember[];
         aboutSubtitle: string;
         aboutTiles: AboutTile[];
+        upcomingEventsSubtitle?: string;
+        fundraisersSubtitle?: string;
+        articlesSubtitle?: string;
+        teamSubtitle?: string;
+        ourStory?: string;
     }) {
         this.events = events;
         this.fundraisers = fundraisers;
@@ -305,6 +335,11 @@ export class PRSM {
         this.teamMembers = teamMembers;
         this.aboutSubtitle = aboutSubtitle;
         this.aboutTiles = aboutTiles;
+        this.upcomingEventsSubtitle = upcomingEventsSubtitle;
+        this.fundraisersSubtitle = fundraisersSubtitle;
+        this.articlesSubtitle = articlesSubtitle;
+        this.teamSubtitle = teamSubtitle;
+        this.ourStory = ourStory;
     }
 
     toMap(): Record<string, any> {
@@ -319,6 +354,11 @@ export class PRSM {
             teamMembers: this.teamMembers.map(member => member.toMap()),
             aboutSubtitle: this.aboutSubtitle,
             aboutTiles: this.aboutTiles.map(tile => tile.toMap()),
+            upcomingEventsSubtitle: this.upcomingEventsSubtitle ?? '',
+            fundraisersSubtitle: this.fundraisersSubtitle ?? '',
+            articlesSubtitle: this.articlesSubtitle ?? '',
+            teamSubtitle: this.teamSubtitle ?? '',
+            ourStory: this.ourStory ?? '',
         };
     }
 
@@ -334,6 +374,11 @@ export class PRSM {
             teamMembers: data.teamMembers.map((memberData: DocumentData) => TeamMember.fromMap(memberData)),
             aboutSubtitle: data.aboutSubtitle,
             aboutTiles: data.aboutTiles.map((tileData: DocumentData) => AboutTile.fromMap(tileData)),
+            upcomingEventsSubtitle: data.upcomingEventsSubtitle,
+            fundraisersSubtitle: data.fundraisersSubtitle,
+            articlesSubtitle: data.articlesSubtitle,
+            teamSubtitle: data.teamSubtitle,
+            ourStory: data.ourStory,
         });
     }
 

@@ -1,14 +1,14 @@
 import { ORIGIN, Event } from '../constants';
 import './events.css';
 
-function Events({ upcomingEvents }: { upcomingEvents: Event[] }) {
+function Events({ upcomingEvents, subtitle }: { upcomingEvents: Event[], subtitle?: string }) {
 
 
     return (
         <section id="events" className="events">
             <div className="events-container">
                 <h3>Upcoming Events</h3>
-                <p className="events-description">Join fundraisers, awareness walks, and educational webinars.</p>
+                <p className="events-description">{subtitle != null ? subtitle : "Join fundraisers, awareness walks, and educational webinars."}</p>
                 <div className="events-grid">
                     {upcomingEvents.map((event, i) => (
                         <div key={event.title} className="event-card" onClick={() => {

@@ -17,7 +17,7 @@ function About({ prsm }: { prsm: PRSM }) {
 
                 </div>
                 <div className='center'>
-                    <button className='btn-secondary' onClick={() => window.location.href = ORIGIN + "Team/"}>Meet the Team</button>
+                    <button className='btn-secondary' onClick={() => window.location.href = ORIGIN + "Team/"}>About Us</button>
 
                 </div>
             </div>

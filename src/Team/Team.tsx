@@ -28,9 +28,16 @@ function Team() {
         <Header isTeamPage={true} />
         <main className="team-page">
           <div className='page-hero'>
-            <h1 className="page-title">Meet the Team</h1>
-            <p className="page-subtitle">Get to know the dedicated individuals working to advance allergy research and community awareness.</p>
+            <h1 className="page-title">About Us</h1>
+            <p className="page-subtitle">{prsm.teamSubtitle || "Get to know the dedicated individuals working to advance allergy research and community awareness."}</p>
           </div>
+
+          {prsm.ourStory && prsm.ourStory.trim() && (
+            <section className="our-story">
+              <h2 className="our-story-title">Our Story</h2>
+              <p className="our-story-text">{prsm.ourStory}</p>
+            </section>
+          )}
 
           {prsm.teamMembers.length > 0 ? (
             <div className="team-list">

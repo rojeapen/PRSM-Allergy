@@ -41,7 +41,7 @@ function ArticlesPage() {
                 <main className="articles-page">
                     <div className="page-hero">
                         <h1 className="page-title">Articles</h1>
-                        <p className="page-subtitle">Stay informed with the latest updates, research insights, and community stories from PRSM Allergy.</p>
+                        <p className="page-subtitle">{prsm.articlesSubtitle || "Stay informed with the latest updates, research insights, and community stories from PRSM Allergy."}</p>
                     </div>
 
                     {loadingArticles ? (

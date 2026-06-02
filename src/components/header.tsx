@@ -42,7 +42,7 @@ function Header({ isFundraiserPage = false, isEventPage = false, isArticlePage =
         let items: MenuItem[] = [];
         if (isDashboardPage) {
             items = [
-                { label: 'Team', key: 'team', onClick: () => window.location.href = ORIGIN + "Dashboard/Team/" },
+                { label: 'About Us', key: 'team', onClick: () => window.location.href = ORIGIN + "Dashboard/Team/" },
                 { label: 'Newsletter', key: 'newsletter', onClick: () => window.location.href = ORIGIN + "Dashboard/Newsletter/" },
                 { label: 'Fundraising', key: 'fundraising', onClick: () => window.location.href = ORIGIN + "Dashboard/Fundraisers/" },
                 { label: 'Events', key: 'events', onClick: () => window.location.href = ORIGIN + "Dashboard/Events/" },
@@ -54,7 +54,7 @@ function Header({ isFundraiserPage = false, isEventPage = false, isArticlePage =
             items = [
                 { label: 'Dashboard', key: 'dashboard', onClick: () => window.location.href = ORIGIN + "Dashboard/" },
                 { label: 'Events', key: 'events', onClick: () => window.location.href = ORIGIN + "Dashboard/Events/" },
-                { label: 'Team', key: 'team', onClick: () => window.location.href = ORIGIN + "Dashboard/Team/" },
+                { label: 'About Us', key: 'team', onClick: () => window.location.href = ORIGIN + "Dashboard/Team/" },
                 { label: 'Articles', key: 'articles', onClick: () => window.location.href = ORIGIN + "Dashboard/Articles/" },
                 { label: 'Home', key: 'home', onClick: () => window.location.href = ORIGIN },
                 { label: 'Log Out', key: 'logout', onClick: () => logout() },
@@ -63,7 +63,7 @@ function Header({ isFundraiserPage = false, isEventPage = false, isArticlePage =
             items = [
                 { label: 'Dashboard', key: 'dashboard', onClick: () => window.location.href = ORIGIN + "Dashboard/" },
                 { label: 'Fundraising', key: 'fundraising', onClick: () => window.location.href = ORIGIN + "Dashboard/Fundraisers/" },
-                { label: 'Team', key: 'team', onClick: () => window.location.href = ORIGIN + "Dashboard/Team/" },
+                { label: 'About Us', key: 'team', onClick: () => window.location.href = ORIGIN + "Dashboard/Team/" },
                 { label: 'Articles', key: 'articles', onClick: () => window.location.href = ORIGIN + "Dashboard/Articles/" },
                 { label: 'Home', key: 'home', onClick: () => window.location.href = ORIGIN },
                 { label: 'Log Out', key: 'logout', onClick: () => logout() },
@@ -82,21 +82,21 @@ function Header({ isFundraiserPage = false, isEventPage = false, isArticlePage =
                 { label: 'Dashboard', key: 'dashboard', onClick: () => window.location.href = ORIGIN + "Dashboard/" },
                 { label: 'Fundraising', key: 'fundraising', onClick: () => window.location.href = ORIGIN + "Dashboard/Fundraisers/" },
                 { label: 'Events', key: 'events', onClick: () => window.location.href = ORIGIN + "Dashboard/Events/" },
-                { label: 'Team', key: 'team', onClick: () => window.location.href = ORIGIN + "Dashboard/Team/" },
+                { label: 'About Us', key: 'team', onClick: () => window.location.href = ORIGIN + "Dashboard/Team/" },
                 { label: 'Home', key: 'home', onClick: () => window.location.href = ORIGIN },
                 { label: 'Log Out', key: 'logout', onClick: () => logout() },
             ];
         } else if (isFundraiserPage) {
             items = [
                 { label: 'Events', key: 'events', onClick: () => window.location.href = ORIGIN + "Events/" },
-                { label: 'Team', key: 'team', onClick: () => window.location.href = ORIGIN + "Team/" },
+                { label: 'About Us', key: 'team', onClick: () => window.location.href = ORIGIN + "Team/" },
                 { label: 'Articles', key: 'articles', onClick: () => window.location.href = ORIGIN + "Articles/" },
                 { label: 'Home', key: 'home', onClick: () => window.location.href = ORIGIN },
             ];
         } else if (isEventPage) {
             items = [
                 { label: 'Fundraisers', key: 'fundraisers', onClick: () => window.location.href = ORIGIN + "Fundraisers/" },
-                { label: 'Team', key: 'team', onClick: () => window.location.href = ORIGIN + "Team/" },
+                { label: 'About Us', key: 'team', onClick: () => window.location.href = ORIGIN + "Team/" },
                 { label: 'Articles', key: 'articles', onClick: () => window.location.href = ORIGIN + "Articles/" },
                 { label: 'Home', key: 'home', onClick: () => window.location.href = ORIGIN },
             ];
@@ -111,7 +111,7 @@ function Header({ isFundraiserPage = false, isEventPage = false, isArticlePage =
             items = [
                 { label: 'Fundraisers', key: 'fundraisers', onClick: () => window.location.href = ORIGIN + "Fundraisers/" },
                 { label: 'Events', key: 'events', onClick: () => window.location.href = ORIGIN + "Events/" },
-                { label: 'Team', key: 'team', onClick: () => window.location.href = ORIGIN + "Team/" },
+                { label: 'About Us', key: 'team', onClick: () => window.location.href = ORIGIN + "Team/" },
                 { label: 'Home', key: 'home', onClick: () => window.location.href = ORIGIN },
             ];
         } else {

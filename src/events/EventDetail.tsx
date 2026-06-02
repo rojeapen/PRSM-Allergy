@@ -64,6 +64,11 @@ function EventDetailPage() {
                                 src={event.photoUrl}
                                 alt={event.title}
                                 className="event-detail-image"
+                                style={{
+                                    objectPosition: `${event.photoPosX}% ${event.photoPosY}%`,
+                                    transform: `scale(${event.photoZoom})`,
+                                    transformOrigin: `${event.photoPosX}% ${event.photoPosY}%`,
+                                }}
                             />
                             <div className="event-detail-overlay">
                                 <div className="event-detail-header-content">

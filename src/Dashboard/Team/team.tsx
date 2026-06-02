@@ -161,10 +161,18 @@ function App() {
     const [editingMember, setEditingMember] = useState<TeamMemberEdit | null>(null)
     const [newPhotoRaw, setNewPhotoRaw] = useState<File | null>(null)
     const [editPhotoRaw, setEditPhotoRaw] = useState<File | null>(null)
+    const [subtitle, setSubtitle] = useState('')
+    const [canSaveSubtitle, setCanSaveSubtitle] = useState(false)
+    const [loadingSaveSubtitle, setLoadingSaveSubtitle] = useState(false)
+    const [ourStory, setOurStory] = useState('')
+    const [canSaveStory, setCanSaveStory] = useState(false)
+    const [loadingSaveStory, setLoadingSaveStory] = useState(false)
 
     useEffect(() => {
         isUserLoggedIn((isLoggedIn) => { });
         getPRSMFresh().then((data) => {
+            setSubtitle(data!.teamSubtitle || '');
+            setOurStory(data!.ourStory || '');
             const membersList = data!.teamMembers.map((member, idx) => {
                 return new TeamMemberEdit({
                     name: member.name,
@@ -231,6 +239,36 @@ function App() {
         }
     };
 
+    const handleSubtitleChange = (val: string) => {
+        setSubtitle(val);
+        setCanSaveSubtitle(true);
+    };
+
+    const saveSubtitle = async () => {
+        if (!prsm) return;
+        setLoadingSaveSubtitle(true);
+        const updatedPrsm = PRSM.fromMap({ ...prsm.toMap(), teamSubtitle: subtitle });
+        await updatePRSM(updatedPrsm);
+        setCanSaveSubtitle(false);
+        setLoadingSaveSubtitle(false);
+        setPrsm(updatedPrsm);
+    };
+
+    const handleStoryChange = (val: string) => {
+        setOurStory(val);
+        setCanSaveStory(true);
+    };
+
+    const saveStory = async () => {
+        if (!prsm) return;
+        setLoadingSaveStory(true);
+        const updatedPrsm = PRSM.fromMap({ ...prsm.toMap(), ourStory: ourStory });
+        await updatePRSM(updatedPrsm);
+        setCanSaveStory(false);
+        setLoadingSaveStory(false);
+        setPrsm(updatedPrsm);
+    };
+
     const saveTeamMembers = async () => {
         if (!prsm) return;
         setLoadingSave(true);
@@ -276,6 +314,40 @@ function App() {
             <Header isDashboardTeamPage={true} />
             {prsm ? (
                 <>
+                    <section className={`dashboard-section light`}>
+                        <div className='section-title'>
+                            <h1>About Us Page</h1>
+                            <p>Edit the subtitle and Our Story section shown on the About Us page.</p>
+                        </div>
+                        <div className='team-dashboard-content'>
+                            <div className='team-form-group' style={{ width: '100%', maxWidth: 600 }}>
+                                <label>Subtitle:</label>
+                                <textarea
+                                    className='input-light'
+                                    value={subtitle}
+                                    onChange={e => handleSubtitleChange(e.target.value)}
+                                />
+                                {canSaveSubtitle && !loadingSaveSubtitle && (
+                                    <button className='btn-primary' onClick={saveSubtitle}>Save</button>
+                                )}
+                                {loadingSaveSubtitle && <div className='loader'></div>}
+                            </div>
+                            <div className='team-form-group' style={{ width: '100%', maxWidth: 600 }}>
+                                <label>Our Story:</label>
+                                <textarea
+                                    className='input-light'
+                                    style={{ minHeight: 180 }}
+                                    placeholder='Tell the story of PRSM Allergy Foundation...'
+                                    value={ourStory}
+                                    onChange={e => handleStoryChange(e.target.value)}
+                                />
+                                {canSaveStory && !loadingSaveStory && (
+                                    <button className='btn-primary' onClick={saveStory}>Save</button>
+                                )}
+                                {loadingSaveStory && <div className='loader'></div>}
+                            </div>
+                        </div>
+                    </section>
                     <section className={`dashboard-section light`}>
                         <div className='section-title'>
                             <h1>Team Members</h1>

@@ -4,8 +4,8 @@ import '../../index.css'
 import "./articles.css"
 import Header from '../../components/header'
 import { isUserLoggedIn } from '../../api/auth'
-import { Article, Photo } from '../../constants'
-import { getArticlesFresh, createArticle, updateArticle, deleteArticle, uploadPhoto, deletePhoto } from '../../api/db'
+import { Article, Photo, PRSM } from '../../constants'
+import { getArticlesFresh, createArticle, updateArticle, deleteArticle, uploadPhoto, deletePhoto, getPRSMFresh, updatePRSM } from '../../api/db'
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
@@ -116,6 +116,10 @@ function App() {
     const [newArticle, setNewArticle] = useState<ArticleEdit>(new ArticleEdit({ title: '', body: '' }));
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editingArticle, setEditingArticle] = useState<ArticleEdit | null>(null);
+    const [prsm, setPrsm] = useState<PRSM | null>(null);
+    const [subtitle, setSubtitle] = useState('');
+    const [canSaveSubtitle, setCanSaveSubtitle] = useState(false);
+    const [loadingSaveSubtitle, setLoadingSaveSubtitle] = useState(false);
 
     useEffect(() => {
         isUserLoggedIn(() => { });
@@ -123,7 +127,28 @@ function App() {
             setArticles(data);
             setLoading(false);
         });
+        getPRSMFresh().then((data) => {
+            if (data) {
+                setPrsm(data);
+                setSubtitle(data.articlesSubtitle || '');
+            }
+        });
     }, []);
+
+    const handleSubtitleChange = (val: string) => {
+        setSubtitle(val);
+        setCanSaveSubtitle(true);
+    };
+
+    const saveSubtitle = async () => {
+        if (!prsm) return;
+        setLoadingSaveSubtitle(true);
+        prsm.articlesSubtitle = subtitle;
+        await updatePRSM(prsm);
+        setCanSaveSubtitle(false);
+        setLoadingSaveSubtitle(false);
+        setPrsm(PRSM.fromMap(prsm.toMap()));
+    };
 
     const refreshArticles = async () => {
         const data = await getArticlesFresh();
@@ -226,6 +251,28 @@ function App() {
     return (
         <>
             <Header isDashboardArticlesPage={true} />
+            {prsm && (
+                <section className="dashboard-section light">
+                    <div className="section-title">
+                        <h1>Page Subtitle</h1>
+                        <p>Edit the subtitle shown under the "Articles" heading.</p>
+                    </div>
+                    <div className="articles-dashboard-content">
+                        <div className="article-form-group" style={{ width: '100%', maxWidth: 600 }}>
+                            <label>Subtitle:</label>
+                            <textarea
+                                className="input-light"
+                                value={subtitle}
+                                onChange={e => handleSubtitleChange(e.target.value)}
+                            />
+                            {canSaveSubtitle && !loadingSaveSubtitle && (
+                                <button className="btn-primary" onClick={saveSubtitle}>Save</button>
+                            )}
+                            {loadingSaveSubtitle && <div className="loader"></div>}
+                        </div>
+                    </div>
+                </section>
+            )}
             {!loading ? (
                 <section className="dashboard-section light">
                     <div className="section-title">

@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from 'react'
+import { StrictMode, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import '../../index.css'
 import "./events.css"
@@ -27,6 +27,9 @@ class EventEdit {
     id?: string;
     capacity?: number;
     attendees?: number;
+    photoPosX: number;
+    photoPosY: number;
+    photoZoom: number;
 
     constructor(params: {
         title: string;
@@ -41,6 +44,9 @@ class EventEdit {
         id?: string;
         capacity?: number;
         attendees?: number;
+        photoPosX?: number;
+        photoPosY?: number;
+        photoZoom?: number;
     }) {
         this.title = params.title;
         this.description = params.description;
@@ -54,7 +60,106 @@ class EventEdit {
         this.id = params.id;
         this.capacity = params.capacity;
         this.attendees = params.attendees;
+        this.photoPosX = params.photoPosX ?? 50;
+        this.photoPosY = params.photoPosY ?? 50;
+        this.photoZoom = params.photoZoom ?? 1;
     }
+}
+
+const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+
+function ImageAdjuster({ src, posX, posY, zoom, onChange, onReset }: {
+    src: string;
+    posX: number;
+    posY: number;
+    zoom: number;
+    onChange: (vals: { posX: number; posY: number; zoom: number }) => void;
+    onReset: () => void;
+}) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const draggingRef = useRef(false);
+    const liveRef = useRef({ x: posX, y: posY });
+    const lastPointerRef = useRef({ x: 0, y: 0 });
+
+    const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        draggingRef.current = true;
+        liveRef.current = { x: posX, y: posY };
+        lastPointerRef.current = { x: e.clientX, y: e.clientY };
+        e.currentTarget.setPointerCapture(e.pointerId);
+    };
+
+    const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!draggingRef.current || !containerRef.current) return;
+        const rect = containerRef.current.getBoundingClientRect();
+        const dx = e.clientX - lastPointerRef.current.x;
+        const dy = e.clientY - lastPointerRef.current.y;
+        lastPointerRef.current = { x: e.clientX, y: e.clientY };
+        // Dragging right should reveal the left side of the image, so position decreases.
+        liveRef.current.x = clamp(liveRef.current.x - (dx / rect.width) * 100, 0, 100);
+        liveRef.current.y = clamp(liveRef.current.y - (dy / rect.height) * 100, 0, 100);
+        onChange({ posX: liveRef.current.x, posY: liveRef.current.y, zoom });
+    };
+
+    const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+        draggingRef.current = false;
+        e.currentTarget.releasePointerCapture(e.pointerId);
+    };
+
+    const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+        const delta = e.deltaY < 0 ? 0.1 : -0.1;
+        const newZoom = clamp(Math.round((zoom + delta) * 100) / 100, 1, 4);
+        onChange({ posX, posY, zoom: newZoom });
+    };
+
+    return (
+        <div className='image-adjuster'>
+            <div
+                ref={containerRef}
+                className='image-adjuster-stage'
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+                onWheel={handleWheel}
+            >
+                <img
+                    src={src}
+                    alt='Adjust preview'
+                    draggable={false}
+                    style={{
+                        objectPosition: `${posX}% ${posY}%`,
+                        transform: `scale(${zoom})`,
+                        transformOrigin: `${posX}% ${posY}%`,
+                    }}
+                />
+                <span className='image-adjuster-hint'>Drag to pan • Scroll to zoom</span>
+            </div>
+            <div className='image-adjuster-controls'>
+                <label>
+                    <span>Horizontal</span>
+                    <input
+                        type='range' min={0} max={100} step={1} value={posX}
+                        onChange={(e) => onChange({ posX: Number(e.target.value), posY, zoom })}
+                    />
+                </label>
+                <label>
+                    <span>Vertical</span>
+                    <input
+                        type='range' min={0} max={100} step={1} value={posY}
+                        onChange={(e) => onChange({ posX, posY: Number(e.target.value), zoom })}
+                    />
+                </label>
+                <label>
+                    <span>Zoom</span>
+                    <input
+                        type='range' min={1} max={4} step={0.05} value={zoom}
+                        onChange={(e) => onChange({ posX, posY, zoom: Number(e.target.value) })}
+                    />
+                </label>
+                <button type='button' className='btn-secondary image-adjuster-reset' onClick={onReset}>Reset</button>
+            </div>
+        </div>
+    );
 }
 
 function App() {
@@ -73,6 +178,19 @@ function App() {
     const [editingIdx, setEditingIdx] = useState<number | null>(null)
     const [editingEvent, setEditingEvent] = useState<EventEdit | null>(null)
 
+    // Stable object URL for the photo being edited so dragging the adjuster doesn't flicker.
+    const editingPhotoSrc = useMemo(() => {
+        if (!editingEvent) return '';
+        if (editingEvent.photoFile) return URL.createObjectURL(editingEvent.photoFile);
+        return editingEvent.photoUrl ?? '';
+    }, [editingEvent?.photoFile, editingEvent?.photoUrl]);
+
+    useEffect(() => {
+        if (editingEvent?.photoFile && editingPhotoSrc.startsWith('blob:')) {
+            return () => URL.revokeObjectURL(editingPhotoSrc);
+        }
+    }, [editingPhotoSrc]);
+
     useEffect(() => {
         isUserLoggedIn((isLoggedIn) => { });
         getPRSMFresh().then((data) => {
@@ -85,6 +203,9 @@ function App() {
                     time: event.time,
                     location: event.location,
                     photoUrl: event.photoUrl,
+                    photoPosX: event.photoPosX,
+                    photoPosY: event.photoPosY,
+                    photoZoom: event.photoZoom,
                     id: idx.toString(),
                 })
             }
@@ -125,14 +246,29 @@ function App() {
         }
     };
 
-    const handleSaveEvent = (idx: number) => {
+    const handleEditEventAdjust = (vals: { posX: number; posY: number; zoom: number }) => {
+        if (editingEvent) {
+            setEditingEvent(new EventEdit({ ...editingEvent, photoPosX: vals.posX, photoPosY: vals.posY, photoZoom: vals.zoom }));
+            setCanSave(true);
+        }
+    };
+
+    const handleResetEventAdjust = () => {
+        if (editingEvent) {
+            setEditingEvent(new EventEdit({ ...editingEvent, photoPosX: 50, photoPosY: 50, photoZoom: 1 }));
+            setCanSave(true);
+        }
+    };
+
+    const handleSaveEvent = async (idx: number) => {
         if (!editingEvent) return;
         const updated = [...events];
         updated[idx] = new EventEdit({ ...editingEvent });
         setEvents(updated);
         setEditingIdx(null);
         setEditingEvent(null);
-        setCanSave(true);
+        // Persist straight to Firebase so the change shows on the live event detail page.
+        await persistEvents(updated);
     };
 
     const handleCancelEditEvent = () => {
@@ -149,12 +285,14 @@ function App() {
         }
     };
 
-    const saveEvents = async () => {
+    // Uploads any new photos, writes the full events list to Firebase, and syncs local state.
+    const persistEvents = async (eventsList: EventEdit[]) => {
         if (!prsm) return;
         setLoadingSave(true);
 
         const uploadedEvents: Event[] = [];
-        for (const event of events) {
+        const syncedEdits: EventEdit[] = [];
+        for (const event of eventsList) {
             let photo = new Photo({ url: event.photoUrl || "", id: event.photoId || "" });
 
             if (event.photoUrl && event.photoFile) {
@@ -178,29 +316,43 @@ function App() {
                 time: event.time,
                 location: event.location,
                 photoUrl: photo.url,
+                photoPosX: event.photoPosX,
+                photoPosY: event.photoPosY,
+                photoZoom: event.photoZoom,
             }));
-        }
 
-        // Delete old events that are no longer in the list
-        for (const oldEvent of prsm.events) {
-            const stillExists = uploadedEvents.find(e => e.title === oldEvent.title);
-            if (!stillExists) {
-                try {
-                    const photoRef = oldEvent.photoUrl;
-                    if (photoRef) {
-                        // Try to clean up if we have a way to delete
-                    }
-                } catch (error) {
-                    console.error("Error deleting event photo:", error);
-                }
-            }
+            // Keep local edit state in sync with the uploaded photo so a later save
+            // doesn't re-upload the same file.
+            syncedEdits.push(new EventEdit({
+                title: event.title,
+                description: event.description,
+                date: event.date,
+                time: event.time,
+                location: event.location,
+                photoUrl: photo.url,
+                photoId: photo.id,
+                id: event.id,
+                photoPosX: event.photoPosX,
+                photoPosY: event.photoPosY,
+                photoZoom: event.photoZoom,
+            }));
         }
 
         prsm.events = uploadedEvents;
         await updatePRSM(prsm);
+        setEvents(syncedEdits);
         setCanSave(false);
         setLoadingSave(false);
         setPrsm(PRSM.fromMap(prsm.toMap()));
+    };
+
+    const saveEvents = async () => {
+        // Capture any in-progress edit so unsaved pan/zoom/field changes aren't lost
+        // if "Save Changes" is clicked while a row is still being edited.
+        const eventsToSave = (editingIdx !== null && editingEvent)
+            ? events.map((e, i) => (i === editingIdx ? new EventEdit({ ...editingEvent }) : e))
+            : events;
+        await persistEvents(eventsToSave);
     };
 
     return (
@@ -276,11 +428,15 @@ function App() {
                                                             }
                                                         }}
                                                     />
-                                                    {editingEvent?.photoUrl && !editingEvent?.photoFile && (
-                                                        <img src={editingEvent.photoUrl} alt="Preview" className='events-dashboard-thumbnail' />
-                                                    )}
-                                                    {editingEvent?.photoFile && (
-                                                        <img src={URL.createObjectURL(editingEvent.photoFile)} alt="Preview" className='events-dashboard-thumbnail' />
+                                                    {(editingEvent?.photoFile || editingEvent?.photoUrl) && (
+                                                        <ImageAdjuster
+                                                            src={editingPhotoSrc}
+                                                            posX={editingEvent.photoPosX}
+                                                            posY={editingEvent.photoPosY}
+                                                            zoom={editingEvent.photoZoom}
+                                                            onChange={handleEditEventAdjust}
+                                                            onReset={handleResetEventAdjust}
+                                                        />
                                                     )}
                                                 </div>
                                                 <div className='events-dashboard-actions'>
@@ -295,6 +451,7 @@ function App() {
                                                         src={event.photoFile != undefined ? URL.createObjectURL(event.photoFile) : event.photoUrl ? event.photoUrl : ''}
                                                         alt={event.title}
                                                         className='events-dashboard-thumbnail'
+                                                        style={{ objectPosition: `${event.photoPosX}% ${event.photoPosY}%` }}
                                                     />
                                                     <div className='events-dashboard-item-info'>
                                                         <h4>{event.title}</h4>

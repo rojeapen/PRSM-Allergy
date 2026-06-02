@@ -44,10 +44,14 @@ function App() {
     const [newFundraiser, setNewFundraiser] = useState<FundraiserEdit>(new FundraiserEdit({ name: '', description: '', link: '' }))
     const [editingIdx, setEditingIdx] = useState<number | null>(null)
     const [editingFundraiser, setEditingFundraiser] = useState<FundraiserEdit | null>(null)
+    const [subtitle, setSubtitle] = useState('')
+    const [canSaveSubtitle, setCanSaveSubtitle] = useState(false)
+    const [loadingSaveSubtitle, setLoadingSaveSubtitle] = useState(false)
 
     useEffect(() => {
         isUserLoggedIn((isLoggedIn) => { });
         getPRSMFresh().then((data) => {
+            setSubtitle(data!.fundraisersSubtitle || '');
             const fundraisersList = data!.fundraisers.map((fundraiser, idx) => {
                 console.log("Loaded fundraiser:", fundraiser);
                 return new FundraiserEdit({
@@ -131,6 +135,21 @@ function App() {
         setCanSave(true);
     };
 
+    const handleSubtitleChange = (val: string) => {
+        setSubtitle(val);
+        setCanSaveSubtitle(true);
+    };
+
+    const saveSubtitle = async () => {
+        if (!prsm) return;
+        setLoadingSaveSubtitle(true);
+        prsm.fundraisersSubtitle = subtitle;
+        await updatePRSM(prsm);
+        setCanSaveSubtitle(false);
+        setLoadingSaveSubtitle(false);
+        setPrsm(PRSM.fromMap(prsm.toMap()));
+    };
+
     const saveFundraisers = async () => {
         if (!prsm) return;
         setLoadingSave(true);
@@ -179,6 +198,26 @@ function App() {
             <Header isDashboardFundraisersPage={true} />
             {prsm ? (
                 <>
+                    <section className={`dashboard-section light`}>
+                        <div className='section-title'>
+                            <h1>Page Subtitle</h1>
+                            <p>Edit the subtitle shown under the "Fundraising Initiatives" heading.</p>
+                        </div>
+                        <div className='fundraisers-dashboard-content'>
+                            <div className='fundraiser-form-group' style={{ width: '100%', maxWidth: 600 }}>
+                                <label>Subtitle:</label>
+                                <textarea
+                                    className='input-light'
+                                    value={subtitle}
+                                    onChange={e => handleSubtitleChange(e.target.value)}
+                                />
+                                {canSaveSubtitle && !loadingSaveSubtitle && (
+                                    <button className='btn-primary' onClick={saveSubtitle}>Save</button>
+                                )}
+                                {loadingSaveSubtitle && <div className='loader'></div>}
+                            </div>
+                        </div>
+                    </section>
                     <section className={`dashboard-section light`}>
                         <div className='section-title'>
                             <h1>Fundraisers</h1>

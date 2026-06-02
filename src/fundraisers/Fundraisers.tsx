@@ -54,7 +54,7 @@ function Fundraisers() {
         <main className="fundraisers-page">
           <div className='page-hero'>
             <h1 className="page-title">Fundraising Initiatives</h1>
-            <p className="page-subtitle">Support our cause and make a meaningful impact. Every contribution helps us reach our mission.</p>
+            <p className="page-subtitle">{prsm.fundraisersSubtitle || "Support our cause and make a meaningful impact. Every contribution helps us reach our mission."}</p>
           </div>
 
           <div className="fundraisers-list">
