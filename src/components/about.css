@@ -1,79 +1,113 @@
 .about {
-    padding: 1rem 3rem;
-    background: white;
+  /* descent continues: --descent-2 (= gallery bottom) → --descent-3 (= fundraiser top).
+     No longer pure white — full-width sections honor the Pale Horizon Rule;
+     the white waypoint markers now read as elevated points on the field. */
+  background: linear-gradient(180deg, var(--descent-2) 0%, var(--descent-3) 100%);
 }
 
-.about-container {
-    max-width: 1200px;
-    margin: 0 auto;
+.about-shell {
+  position: relative;
+  z-index: 1;
 }
 
-.about h3 {
-    font-size: 1.75rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-    color: black;
+.about-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  max-width: 60ch;
+  margin-bottom: clamp(2.5rem, 1.5rem + 3vw, 4.5rem);
+}
+.about-title {
+  font-size: var(--text-h2);
+  letter-spacing: -0.015em;
 }
 
-.about-lede {
-    font-size: 1.1rem;
-    line-height: 1.6;
-    color: #333;
-    margin-bottom: 2rem;
-    max-width: 800px;
+/* ---- The plotted path of waypoints ---- */
+.path {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(1.75rem, 1rem + 2vw, 3.5rem);
 }
 
-.about-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 2rem;
-    margin-top: 2rem;
-    margin-bottom: 2rem;
+/* dashed route connecting the waypoint markers (desktop) */
+.path::before {
+  content: "";
+  position: absolute;
+  top: 21px;
+  left: 16.6%;
+  right: 16.6%;
+  height: 0;
+  border-top: 2px dashed color-mix(in oklch, var(--research-teal) 45%, var(--bg));
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+  z-index: 0;
 }
 
-.about-card {
-    padding: 1.5rem;
-    background: #f9f9f9;
-    border-radius: 8px;
-    border-left: 4px solid var(--primary, #0A6C95);
+.waypoint {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
 }
 
-.about-card h4 {
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin-bottom: 0.75rem;
-    color: black;
+.waypoint-index {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--research-teal-deep);
+  color: var(--research-teal-deep);
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  /* ring matches the field near the markers so it masks the dashed route
+     cleanly; the white circle itself still reads as an elevated point */
+  box-shadow: 0 0 0 6px var(--descent-2);
+  margin-bottom: var(--space-4);
 }
 
-.about-card p {
-    font-size: 0.95rem;
-    line-height: 1.5;
-    color: #555;
+.waypoint-title {
+  font-size: var(--text-h3);
+  font-weight: 700;
 }
 
-@media only screen and (max-width: 768px) {
-    .about {
-        padding: 2rem 1rem;
-    }
-
-    .about h3 {
-        font-size: 1.5rem;
-    }
-
-    .about-lede {
-        font-size: 1rem;
-    }
-
-    .about-grid {
-        gap: 1.5rem;
-    }
-
-    .about-card {
-        padding: 1.25rem;
-    }
+.waypoint-desc {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--body);
+  max-width: 40ch;
 }
 
-.center {
-    display: flex;
-    justify-content: center;
+.about-cta {
+  margin-top: clamp(2.5rem, 1.5rem + 3vw, 4rem);
+}
+
+@media (max-width: 760px) {
+  .path {
+    grid-template-columns: 1fr;
+    gap: var(--space-32);
+  }
+  /* the route becomes vertical, running through stacked markers */
+  .path::before {
+    top: 22px;
+    bottom: 22px;
+    left: 21px;
+    right: auto;
+    height: auto;
+    width: 0;
+    border-top: none;
+    border-left: 2px dashed color-mix(in oklch, var(--research-teal) 45%, var(--bg));
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 8%, #000 92%, transparent);
+    mask-image: linear-gradient(180deg, transparent, #000 8%, #000 92%, transparent);
+  }
 }

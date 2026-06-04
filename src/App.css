@@ -1,7 +1,27 @@
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-  background: #f6fbfd;
+/* App-level composition. Tokens & base live in styles/tokens.css. */
+
+#root {
+  isolation: isolate;
 }
 
+main {
+  display: block;
+}
+
+/* Skip link for keyboard users */
+.skip-link {
+  position: absolute;
+  left: var(--space-16);
+  top: -100px;
+  z-index: 200;
+  background: var(--surface);
+  color: var(--ink);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-hover);
+  font-weight: 600;
+  transition: top var(--dur-mid) var(--ease-out-expo);
+}
+.skip-link:focus {
+  top: var(--space-16);
+}

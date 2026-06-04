@@ -1,7 +1,8 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import './header.css'
 import Logo from '../assets/favicon.svg'
 import { ORIGIN } from "../constants";
+import { scrollToId } from "../lib/scroll";
 import { logout } from "../api/auth";
 
 type HeaderProps = {
@@ -16,34 +17,115 @@ type HeaderProps = {
     isTeamPage?: boolean;
 }
 
+type MenuItem = {
+    label: string;
+    key: string;
+    onClick: () => void;
+    section?: string;
+};
+
+// Landing nav, in display order. `section` items are in-page anchors that
+// drive scrollspy and are filtered to whichever sections actually rendered;
+// `href` items (e.g. Articles) navigate to a separate page.
+const LANDING_NAV: { key: string; label: string; section?: string; href?: string }[] = [
+    { key: 'about', label: 'About', section: 'about' },
+    { key: 'events', label: 'Events', section: 'events' },
+    { key: 'articles', label: 'Articles', href: 'Articles/' },
+    { key: 'contact', label: 'Contact', section: 'contact' },
+];
+
 function Header({ isFundraiserPage = false, isEventPage = false, isArticlePage = false, isDashboardPage = false, isDashboardEventsPage = false, isDashboardFundraisersPage = false, isDashboardTeamPage = false, isDashboardArticlesPage = false, isTeamPage = false }: HeaderProps) {
 
-
-    const headerRef = useRef<HTMLDivElement>(null);
+    const headerRef = useRef<HTMLElement>(null);
     const [menuOpen, setMenuOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+    const [activeSection, setActiveSection] = useState<string>('');
+    const [landingNav, setLandingNav] = useState(LANDING_NAV);
 
-    const toggleMenu = () => {
-        setMenuOpen(!menuOpen);
+    const isDashboard = isDashboardPage || isDashboardEventsPage || isDashboardFundraisersPage || isDashboardTeamPage || isDashboardArticlesPage;
+    const isLanding = !isDashboard && !isFundraiserPage && !isEventPage && !isTeamPage && !isArticlePage;
+    const showDonate = !isDashboard;
+    const solid = !isLanding || scrolled || menuOpen;
+
+    const goHome = () => {
+        window.location.href = isDashboard ? ORIGIN + "Dashboard/" : ORIGIN;
     };
+    const goDonate = () => { window.location.href = ORIGIN + "Fundraisers/"; setMenuOpen(false); };
 
-    const closeMenu = () => {
-        setMenuOpen(false);
-    };
+    // --- Scroll state (rAF-throttled): transparent over hero, solid after ---
+    useEffect(() => {
+        let raf = 0;
+        const onScroll = () => {
+            if (raf) return;
+            raf = requestAnimationFrame(() => {
+                setScrolled(window.scrollY > 24);
+                raf = 0;
+            });
+        };
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+            if (raf) cancelAnimationFrame(raf);
+        };
+    }, []);
 
-    // Menu items type
-    type MenuItem = {
-        label: string;
-        onClick: () => void;
-        key: string;
-    };
+    // --- Landing: drop in-page nav items whose section didn't render ---
+    useEffect(() => {
+        if (!isLanding) return;
+        setLandingNav(LANDING_NAV.filter((s) => !s.section || document.getElementById(s.section)));
+    }, [isLanding]);
 
-    // Helper function to compute menu items based on current props/state
-    const getMenuItems = useCallback((): MenuItem[] => {
-        let items: MenuItem[] = [];
+    // --- Scrollspy: highlight the section most in view (landing only) ---
+    useEffect(() => {
+        const sectionItems = landingNav.filter((s) => s.section);
+        if (!isLanding || sectionItems.length === 0 || typeof IntersectionObserver === 'undefined') return;
+        const els = sectionItems
+            .map((s) => document.getElementById(s.section!))
+            .filter((el): el is HTMLElement => !!el);
+        if (els.length === 0) return;
+
+        const ratios = new Map<string, number>();
+        const headerH = headerRef.current?.offsetHeight ?? 80;
+        const io = new IntersectionObserver(
+            (entries) => {
+                for (const e of entries) {
+                    ratios.set(e.target.id, e.isIntersecting ? e.intersectionRatio : 0);
+                }
+                let best = '';
+                let bestRatio = 0;
+                for (const [id, r] of ratios) {
+                    if (r > bestRatio) { bestRatio = r; best = id; }
+                }
+                setActiveSection(bestRatio > 0 ? best : '');
+            },
+            { rootMargin: `-${headerH + 8}px 0px -55% 0px`, threshold: [0, 0.2, 0.5, 0.9] },
+        );
+        els.forEach((el) => io.observe(el));
+        return () => io.disconnect();
+    }, [isLanding, landingNav]);
+
+    // --- Mobile menu: Esc to close + click outside ---
+    useEffect(() => {
+        if (!menuOpen) return;
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
+        const onClick = (e: MouseEvent) => {
+            if (headerRef.current && !headerRef.current.contains(e.target as Node)) setMenuOpen(false);
+        };
+        document.addEventListener('keydown', onKey);
+        document.addEventListener('pointerdown', onClick);
+        return () => {
+            document.removeEventListener('keydown', onKey);
+            document.removeEventListener('pointerdown', onClick);
+        };
+    }, [menuOpen]);
+
+    // Non-landing / dashboard variants keep their existing page-to-page nav.
+    const getPageMenuItems = useCallback((): MenuItem[] => {
         if (isDashboardPage) {
-            items = [
+            return [
                 { label: 'About Us', key: 'team', onClick: () => window.location.href = ORIGIN + "Dashboard/Team/" },
-                { label: 'Newsletter', key: 'newsletter', onClick: () => window.location.href = ORIGIN + "Dashboard/Newsletter/" },
+
                 { label: 'Fundraising', key: 'fundraising', onClick: () => window.location.href = ORIGIN + "Dashboard/Fundraisers/" },
                 { label: 'Events', key: 'events', onClick: () => window.location.href = ORIGIN + "Dashboard/Events/" },
                 { label: 'Articles', key: 'articles', onClick: () => window.location.href = ORIGIN + "Dashboard/Articles/" },
@@ -51,7 +133,7 @@ function Header({ isFundraiserPage = false, isEventPage = false, isArticlePage =
                 { label: 'Log Out', key: 'logout', onClick: () => logout() },
             ];
         } else if (isDashboardFundraisersPage) {
-            items = [
+            return [
                 { label: 'Dashboard', key: 'dashboard', onClick: () => window.location.href = ORIGIN + "Dashboard/" },
                 { label: 'Events', key: 'events', onClick: () => window.location.href = ORIGIN + "Dashboard/Events/" },
                 { label: 'About Us', key: 'team', onClick: () => window.location.href = ORIGIN + "Dashboard/Team/" },
@@ -60,7 +142,7 @@ function Header({ isFundraiserPage = false, isEventPage = false, isArticlePage =
                 { label: 'Log Out', key: 'logout', onClick: () => logout() },
             ];
         } else if (isDashboardEventsPage) {
-            items = [
+            return [
                 { label: 'Dashboard', key: 'dashboard', onClick: () => window.location.href = ORIGIN + "Dashboard/" },
                 { label: 'Fundraising', key: 'fundraising', onClick: () => window.location.href = ORIGIN + "Dashboard/Fundraisers/" },
                 { label: 'About Us', key: 'team', onClick: () => window.location.href = ORIGIN + "Dashboard/Team/" },
@@ -69,7 +151,7 @@ function Header({ isFundraiserPage = false, isEventPage = false, isArticlePage =
                 { label: 'Log Out', key: 'logout', onClick: () => logout() },
             ];
         } else if (isDashboardTeamPage) {
-            items = [
+            return [
                 { label: 'Dashboard', key: 'dashboard', onClick: () => window.location.href = ORIGIN + "Dashboard/" },
                 { label: 'Fundraising', key: 'fundraising', onClick: () => window.location.href = ORIGIN + "Dashboard/Fundraisers/" },
                 { label: 'Events', key: 'events', onClick: () => window.location.href = ORIGIN + "Dashboard/Events/" },
@@ -78,7 +160,7 @@ function Header({ isFundraiserPage = false, isEventPage = false, isArticlePage =
                 { label: 'Log Out', key: 'logout', onClick: () => logout() },
             ];
         } else if (isDashboardArticlesPage) {
-            items = [
+            return [
                 { label: 'Dashboard', key: 'dashboard', onClick: () => window.location.href = ORIGIN + "Dashboard/" },
                 { label: 'Fundraising', key: 'fundraising', onClick: () => window.location.href = ORIGIN + "Dashboard/Fundraisers/" },
                 { label: 'Events', key: 'events', onClick: () => window.location.href = ORIGIN + "Dashboard/Events/" },
@@ -87,129 +169,124 @@ function Header({ isFundraiserPage = false, isEventPage = false, isArticlePage =
                 { label: 'Log Out', key: 'logout', onClick: () => logout() },
             ];
         } else if (isFundraiserPage) {
-            items = [
+            return [
                 { label: 'Events', key: 'events', onClick: () => window.location.href = ORIGIN + "Events/" },
                 { label: 'About Us', key: 'team', onClick: () => window.location.href = ORIGIN + "Team/" },
                 { label: 'Articles', key: 'articles', onClick: () => window.location.href = ORIGIN + "Articles/" },
                 { label: 'Home', key: 'home', onClick: () => window.location.href = ORIGIN },
             ];
         } else if (isEventPage) {
-            items = [
+            return [
                 { label: 'Fundraisers', key: 'fundraisers', onClick: () => window.location.href = ORIGIN + "Fundraisers/" },
                 { label: 'About Us', key: 'team', onClick: () => window.location.href = ORIGIN + "Team/" },
                 { label: 'Articles', key: 'articles', onClick: () => window.location.href = ORIGIN + "Articles/" },
                 { label: 'Home', key: 'home', onClick: () => window.location.href = ORIGIN },
             ];
         } else if (isTeamPage) {
-            items = [
+            return [
                 { label: 'Fundraisers', key: 'fundraisers', onClick: () => window.location.href = ORIGIN + "Fundraisers/" },
                 { label: 'Events', key: 'events', onClick: () => window.location.href = ORIGIN + "Events/" },
                 { label: 'Articles', key: 'articles', onClick: () => window.location.href = ORIGIN + "Articles/" },
                 { label: 'Home', key: 'home', onClick: () => window.location.href = ORIGIN },
             ];
         } else if (isArticlePage) {
-            items = [
+            return [
                 { label: 'Fundraisers', key: 'fundraisers', onClick: () => window.location.href = ORIGIN + "Fundraisers/" },
                 { label: 'Events', key: 'events', onClick: () => window.location.href = ORIGIN + "Events/" },
                 { label: 'About Us', key: 'team', onClick: () => window.location.href = ORIGIN + "Team/" },
                 { label: 'Home', key: 'home', onClick: () => window.location.href = ORIGIN },
             ];
-        } else {
-            items = [
-                {
-                    label: 'About',
-                    key: 'about',
-                    onClick: () => {
-                        const aboutSection = document.getElementById('about');
-                        if (aboutSection) {
-                            const headerElement = document.querySelector('.header') as HTMLElement;
-                            const headerOffset = headerElement?.offsetHeight ?? 0;
-                            const elementPosition = aboutSection.getBoundingClientRect().top;
-                            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-                        }
-                        setMenuOpen(false);
-                    }
-                },
-                {
-                    label: 'Fundraising',
-                    key: 'fundraising',
-                    onClick: () => { window.location.href = ORIGIN + "Fundraisers/"; setMenuOpen(false); }
-                },
-                {
-                    label: 'Events',
-                    key: 'events',
-                    onClick: () => { window.location.href = ORIGIN + "Events/"; setMenuOpen(false); }
-                },
-                {
-                    label: 'Articles',
-                    key: 'articles',
-                    onClick: () => { window.location.href = ORIGIN + "Articles/"; setMenuOpen(false); }
-                },
-                {
-                    label: 'Contact',
-                    key: 'contact',
-                    onClick: () => {
-                        const contactSection = document.getElementById('contact');
-                        if (contactSection) {
-                            const headerElement = document.querySelector('.header') as HTMLElement;
-                            const headerOffset = headerElement?.offsetHeight ?? 0;
-                            const elementPosition = contactSection.getBoundingClientRect().top;
-                            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-                            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-                        }
-                        setMenuOpen(false);
-                    }
-                },
-            ];
-            const isAdmin = localStorage.getItem("isAdmin");
-            if (isAdmin === "true") {
-                items.push({ label: 'Dashboard', key: 'dashboard', onClick: () => window.location.href = ORIGIN + "Dashboard/" });
-            }
         }
-        return items;
-    }, [isDashboardPage, isFundraiserPage, isEventPage, menuOpen, isDashboardEventsPage, isDashboardFundraisersPage, isDashboardTeamPage, isDashboardArticlesPage, isTeamPage, isArticlePage]);
+        return [];
+    }, [isDashboardPage, isFundraiserPage, isEventPage, isDashboardEventsPage, isDashboardFundraisersPage, isDashboardTeamPage, isDashboardArticlesPage, isTeamPage, isArticlePage]);
 
-    const menuItems = getMenuItems();
+    let menuItems: MenuItem[];
+    if (isLanding) {
+        menuItems = landingNav.map((s) => ({
+            key: s.key,
+            label: s.label,
+            section: s.section,
+            onClick: s.section
+                ? () => { scrollToId(s.section!); setMenuOpen(false); }
+                : () => { window.location.href = ORIGIN + s.href!; setMenuOpen(false); },
+        }));
+        if (typeof localStorage !== 'undefined' && localStorage.getItem("isAdmin") === "true") {
+            menuItems.push({ label: 'Dashboard', key: 'dashboard', onClick: () => { window.location.href = ORIGIN + "Dashboard/"; } });
+        }
+    } else {
+        menuItems = getPageMenuItems();
+    }
+
     return (
         <>
-            <div ref={headerRef} className={"header"} id="myHeader">
-                <img src={Logo} alt="" className="Logo" onClick={() => {
-                    if (isDashboardPage || isDashboardEventsPage || isDashboardFundraisersPage || isDashboardTeamPage || isDashboardArticlesPage) window.location.href = ORIGIN + "Dashboard/";
-                    else
-                        window.location.href = ORIGIN;
+            <header
+                ref={headerRef}
+                className={`header${solid ? ' is-solid' : ' is-transparent'}`}
+                id="myHeader"
+            >
+                <button className="header-brand" onClick={goHome} aria-label="PRSM Allergy Foundation, home">
+                    <img src={Logo} alt="" className="header-logo" />
+                    <span className="header-text">
+                        <span className="header-title">
+                            PRSM Allergy Foundation{isDashboard ? " Dashboard" : ""}
+                        </span>
+                        <span className="header-subtitle">Accelerating progress in allergy and immune health</span>
+                    </span>
+                </button>
 
-                }} />
-                <div className="header-text" onClick={() => {
-                    if (isDashboardPage || isDashboardEventsPage || isDashboardFundraisersPage || isDashboardTeamPage || isDashboardArticlesPage) window.location.href = ORIGIN + "Dashboard/";
-                    else
-                        window.location.href = ORIGIN;
-                }}>
-                    <h2 className="header-title">PRSM Allergy Foundation {isDashboardPage || isDashboardEventsPage || isDashboardFundraisersPage || isDashboardTeamPage || isDashboardArticlesPage ? "Dashboard" : ""}</h2>
-                    <h3 className="header-subtitle">Accelerating progress in allergy and immune health.</h3>
-                </div>
-                <nav className="header-nav">
+                <nav className="header-nav" aria-label="Primary">
                     {menuItems.map(item => (
-                        <label className="header-btn" key={item.key} onClick={item.onClick}>{item.label}</label>
+                        <button
+                            className="btn-ghost"
+                            key={item.key}
+                            onClick={item.onClick}
+                            aria-current={item.section && activeSection === item.section ? 'page' : undefined}
+                        >
+                            {item.label}
+                        </button>
                     ))}
+                    {showDonate && (
+                        <button className="btn-primary header-donate" onClick={goDonate}>
+                            Donate
+                            <span className="btn-arrow" aria-hidden="true">→</span>
+                        </button>
+                    )}
                 </nav>
+
                 <button
                     className={`hamburger ${menuOpen ? 'active' : ''}`}
-                    onClick={toggleMenu}
-                    aria-label="Toggle navigation menu"
+                    onClick={() => setMenuOpen((o) => !o)}
+                    aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+                    aria-expanded={menuOpen}
+                    aria-controls="mobile-menu"
                 >
                     <span></span>
                     <span></span>
                     <span></span>
                 </button>
-            </div>
-            {menuOpen && (
-                <nav className="mobile-menu">
-                    {menuItems.map(item => (
-                        <label className="mobile-menu-item" key={item.key} onClick={item.onClick}>{item.label}</label>
-                    ))}
-                </nav>
-            )}
+
+                {menuOpen && (
+                    <nav className="mobile-menu" id="mobile-menu" aria-label="Primary">
+                        {menuItems.map((item, i) => (
+                            <button
+                                className="mobile-menu-item"
+                                key={item.key}
+                                onClick={item.onClick}
+                                aria-current={item.section && activeSection === item.section ? 'page' : undefined}
+                                style={{ '--i': i } as React.CSSProperties}
+                            >
+                                {item.label}
+                            </button>
+                        ))}
+                        {showDonate && (
+                            <button className="btn-primary mobile-donate" onClick={goDonate}>
+                                Donate now
+                                <span className="btn-arrow" aria-hidden="true">→</span>
+                            </button>
+                        )}
+                    </nav>
+                )}
+            </header>
         </>
     )
 }

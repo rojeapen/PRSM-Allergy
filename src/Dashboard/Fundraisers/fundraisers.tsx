@@ -7,12 +7,27 @@ import { isUserLoggedIn } from '../../api/auth'
 import { Fundraiser, PRSM } from '../../constants'
 import { getPRSMFresh, updatePRSM, uploadPhoto, deletePhoto } from '../../api/db'
 import { Photo } from '../../constants'
+import {
+    Panel,
+    Field,
+    EmptyState,
+    SaveButton,
+    SectionRail,
+    DashboardSkeleton,
+    useDashboardRail,
+    type Section,
+} from '../shell'
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
         <App />
     </StrictMode>,
 )
+
+const SECTIONS: Section[] = [
+    { id: 'subtitle', label: 'Subtitle' },
+    { id: 'fundraisers', label: 'Fundraisers' },
+]
 
 class FundraiserEdit {
     name: string;
@@ -39,7 +54,6 @@ class FundraiserEdit {
 function App() {
     const [prsm, setPrsm] = useState<PRSM | null>(null)
     const [fundraisers, setFundraisers] = useState<FundraiserEdit[]>([])
-    const [canSave, setCanSave] = useState(false)
     const [loadingSave, setLoadingSave] = useState(false)
     const [newFundraiser, setNewFundraiser] = useState<FundraiserEdit>(new FundraiserEdit({ name: '', description: '', link: '' }))
     const [editingIdx, setEditingIdx] = useState<number | null>(null)
@@ -48,12 +62,13 @@ function App() {
     const [canSaveSubtitle, setCanSaveSubtitle] = useState(false)
     const [loadingSaveSubtitle, setLoadingSaveSubtitle] = useState(false)
 
+    const { activeSection, goToSection } = useDashboardRail(SECTIONS, !!prsm)
+
     useEffect(() => {
         isUserLoggedIn((isLoggedIn) => { });
         getPRSMFresh().then((data) => {
             setSubtitle(data!.fundraisersSubtitle || '');
             const fundraisersList = data!.fundraisers.map((fundraiser, idx) => {
-                console.log("Loaded fundraiser:", fundraiser);
                 return new FundraiserEdit({
                     name: fundraiser.name,
                     description: fundraiser.description,
@@ -65,18 +80,19 @@ function App() {
                 })
             }
             );
-            console.log(fundraisersList);
             setFundraisers(fundraisersList);
             setPrsm(data!);
 
         });
     }, [])
 
-    const handleAddFundraiser = () => {
+    const handleAddFundraiser = async () => {
         if (!newFundraiser.name.trim() || !newFundraiser.description.trim() || !newFundraiser.link.trim()) return;
-        setFundraisers([...fundraisers, new FundraiserEdit({ ...newFundraiser })]);
+        const updated = [...fundraisers, new FundraiserEdit({ ...newFundraiser })];
+        setFundraisers(updated);
         setNewFundraiser(new FundraiserEdit({ name: '', description: '', link: '' }));
-        setCanSave(true);
+        // Persist immediately so a newly added fundraiser goes live without a separate save step.
+        await persistFundraisers(updated);
     };
 
     const handleEditFundraiser = (idx: number) => {
@@ -96,14 +112,15 @@ function App() {
         }
     };
 
-    const handleSaveFundraiser = (idx: number) => {
+    const handleSaveFundraiser = async (idx: number) => {
         if (!editingFundraiser) return;
         const updated = [...fundraisers];
         updated[idx] = new FundraiserEdit({ ...editingFundraiser });
         setFundraisers(updated);
         setEditingIdx(null);
         setEditingFundraiser(null);
-        setCanSave(true);
+        // Persist the edit immediately.
+        await persistFundraisers(updated);
     };
 
     const handleCancelEditFundraiser = () => {
@@ -111,16 +128,18 @@ function App() {
         setEditingFundraiser(null);
     };
 
-    const handleDeleteFundraiser = (idx: number) => {
-        setFundraisers(fundraisers.filter((_, i) => i !== idx));
-        setCanSave(true);
+    const handleDeleteFundraiser = async (idx: number) => {
+        const updated = fundraisers.filter((_, i) => i !== idx);
+        setFundraisers(updated);
         if (editingIdx === idx) {
             setEditingIdx(null);
             setEditingFundraiser(null);
         }
+        // Persist immediately so removing a fundraiser takes effect without a separate save step.
+        await persistFundraisers(updated);
     };
 
-    const handleToggleFeatured = (idx: number) => {
+    const handleToggleFeatured = async (idx: number) => {
         const updated = fundraisers.map((fundraiser, i) => {
             if (i === idx) {
                 // Toggle the featured status for this fundraiser
@@ -132,7 +151,7 @@ function App() {
             return fundraiser;
         });
         setFundraisers(updated);
-        setCanSave(true);
+        await persistFundraisers(updated);
     };
 
     const handleSubtitleChange = (val: string) => {
@@ -150,24 +169,23 @@ function App() {
         setPrsm(PRSM.fromMap(prsm.toMap()));
     };
 
-    const saveFundraisers = async () => {
+    // Uploads any new photos, writes the full fundraisers list to Firebase, and syncs
+    // local state so a later edit doesn't re-upload the same file.
+    const persistFundraisers = async (list: FundraiserEdit[]) => {
         if (!prsm) return;
         setLoadingSave(true);
 
         const uploadedFundraisers: Fundraiser[] = [];
-        for (const fundraiser of fundraisers) {
-
+        const syncedEdits: FundraiserEdit[] = [];
+        for (const fundraiser of list) {
+            // Start from the fundraiser's existing photo. Only replace it when a new file
+            // was actually chosen, so editing without a new photo keeps the old one.
             let photo = new Photo({ url: fundraiser.photoUrl || "", id: fundraiser.photoId || "" });
-            console.log("Processing fundraiser:", fundraiser);
-            if (fundraiser.photoUrl && fundraiser.photoFile) {
-                // If there's an existing photo URL and a new file, delete the old photo
-                await deletePhoto(photo);
-            }
+
             if (fundraiser.photoFile) {
                 const uploadedPhoto: Photo = await uploadPhoto(fundraiser.photoFile, `Fundraiser ${fundraiser.name}`);
                 photo = uploadedPhoto;
             }
-
 
             uploadedFundraisers.push(new Fundraiser({
                 name: fundraiser.name,
@@ -176,19 +194,38 @@ function App() {
                 link: fundraiser.link,
                 isFeatured: fundraiser.isFeatured,
             }));
+
+            syncedEdits.push(new FundraiserEdit({
+                name: fundraiser.name,
+                description: fundraiser.description,
+                photoUrl: photo.url,
+                photoId: photo.id,
+                link: fundraiser.link,
+                id: fundraiser.id,
+                isFeatured: fundraiser.isFeatured,
+            }));
         }
 
-        // Delete old fundraisers that are no longer in the list
+        // Delete photos that are no longer referenced by any current fundraiser. Matching by
+        // photo identity (not name) means a renamed fundraiser who kept their photo, or any
+        // fundraiser edited without a new photo, never loses the existing image. This also
+        // cleans up the previous photo when one was genuinely replaced.
+        const survivingPhotoIds = new Set(uploadedFundraisers.map(f => f.photo.id).filter(Boolean));
+        const survivingPhotoUrls = new Set(uploadedFundraisers.map(f => f.photo.url).filter(Boolean));
         for (const oldFundraiser of prsm.fundraisers) {
-            const stillExists = uploadedFundraisers.find(f => f.name === oldFundraiser.name);
-            if (!stillExists) {
-                await deletePhoto(oldFundraiser.photo);
+            const oldPhoto = oldFundraiser.photo;
+            if (!oldPhoto || (!oldPhoto.id && !oldPhoto.url)) continue;
+            const stillUsed =
+                (oldPhoto.id && survivingPhotoIds.has(oldPhoto.id)) ||
+                (oldPhoto.url && survivingPhotoUrls.has(oldPhoto.url));
+            if (!stillUsed) {
+                await deletePhoto(oldPhoto);
             }
         }
 
         prsm.fundraisers = uploadedFundraisers;
         await updatePRSM(prsm);
-        setCanSave(false);
+        setFundraisers(syncedEdits);
         setLoadingSave(false);
         setPrsm(PRSM.fromMap(prsm.toMap()));
     };
@@ -196,174 +233,214 @@ function App() {
     return (
         <>
             <Header isDashboardFundraisersPage={true} />
-            {prsm ? (
-                <>
-                    <section className={`dashboard-section light`}>
-                        <div className='section-title'>
-                            <h1>Page Subtitle</h1>
-                            <p>Edit the subtitle shown under the "Fundraising Initiatives" heading.</p>
-                        </div>
-                        <div className='fundraisers-dashboard-content'>
-                            <div className='fundraiser-form-group' style={{ width: '100%', maxWidth: 600 }}>
-                                <label>Subtitle:</label>
-                                <textarea
-                                    className='input-light'
-                                    value={subtitle}
-                                    onChange={e => handleSubtitleChange(e.target.value)}
-                                />
-                                {canSaveSubtitle && !loadingSaveSubtitle && (
-                                    <button className='btn-primary' onClick={saveSubtitle}>Save</button>
-                                )}
-                                {loadingSaveSubtitle && <div className='loader'></div>}
-                            </div>
-                        </div>
-                    </section>
-                    <section className={`dashboard-section light`}>
-                        <div className='section-title'>
-                            <h1>Fundraisers</h1>
-                            <p>Manage fundraising campaigns shown on the main website.</p>
-                        </div>
-                        <div className='fundraisers-dashboard-content'>
-                            <div className='fundraisers-dashboard-list'>
-                                {fundraisers.length === 0 && <div>No fundraisers yet.</div>}
-                                {fundraisers.map((fundraiser, idx) => (
-                                    <div className='fundraisers-dashboard-item' key={idx}>
-                                        {editingIdx === idx ? (
-                                            <>
-                                                <div className='fundraiser-form-group'>
-                                                    <label>Name:</label>
-                                                    <input
-                                                        type='text'
-                                                        className='input-light'
-                                                        value={editingFundraiser?.name || ''}
-                                                        onChange={e => handleEditFundraiserField('name', e.target.value)}
-                                                    />
+            <main className="dash">
+                <div className="dash-head">
+                    <p className="kicker">Site content</p>
+                    <h1>Fundraisers</h1>
+                    <p className="dash-head-sub">
+                        Edit the section subtitle and manage the fundraising campaigns shown
+                        on the main website. Changes save as you add, edit, or remove them.
+                    </p>
+                </div>
+
+                {!prsm ? (
+                    <DashboardSkeleton sections={SECTIONS} panels={2} />
+                ) : (
+                    <>
+                        <SectionRail
+                            sections={SECTIONS}
+                            activeSection={activeSection}
+                            goToSection={goToSection}
+                        />
+                        <div className="dash-main">
+                            <Panel
+                                id="subtitle"
+                                title="Page subtitle"
+                                desc='Shown under the "Fundraising Initiatives" heading.'
+                                action={
+                                    <SaveButton
+                                        dirty={canSaveSubtitle}
+                                        loading={loadingSaveSubtitle}
+                                        onClick={saveSubtitle}
+                                        label="Save subtitle"
+                                    />
+                                }
+                            >
+                                <Field label="Subtitle" htmlFor="fr-subtitle">
+                                    <textarea
+                                        id="fr-subtitle"
+                                        className="field"
+                                        rows={3}
+                                        value={subtitle}
+                                        onChange={e => handleSubtitleChange(e.target.value)}
+                                    />
+                                </Field>
+                            </Panel>
+
+                            <Panel
+                                id="fundraisers"
+                                title="Fundraisers"
+                                desc="Manage fundraising campaigns. The starred campaign is featured on the site. Changes save immediately."
+                                action={
+                                    loadingSave ? (
+                                        <span className="saving-inline">
+                                            <span className="spinner-sm is-dark" aria-hidden="true" />
+                                            Saving…
+                                        </span>
+                                    ) : undefined
+                                }
+                            >
+                                <div className="fr-list">
+                                    {fundraisers.length === 0 && (
+                                        <EmptyState>No fundraisers yet. Add one below.</EmptyState>
+                                    )}
+                                    {fundraisers.map((fundraiser, idx) => (
+                                        editingIdx === idx ? (
+                                            <div className="fr-item is-editing" key={idx}>
+                                                <div className="fr-edit-fields">
+                                                    <Field label="Name" htmlFor={`fr-name-${idx}`}>
+                                                        <input
+                                                            id={`fr-name-${idx}`}
+                                                            type="text"
+                                                            className="field"
+                                                            value={editingFundraiser?.name || ''}
+                                                            onChange={e => handleEditFundraiserField('name', e.target.value)}
+                                                        />
+                                                    </Field>
+                                                    <Field label="Description" htmlFor={`fr-desc-${idx}`}>
+                                                        <textarea
+                                                            id={`fr-desc-${idx}`}
+                                                            className="field"
+                                                            rows={3}
+                                                            value={editingFundraiser?.description || ''}
+                                                            onChange={e => handleEditFundraiserField('description', e.target.value)}
+                                                        />
+                                                    </Field>
+                                                    <Field label="Donation link" htmlFor={`fr-link-${idx}`}>
+                                                        <input
+                                                            id={`fr-link-${idx}`}
+                                                            type="text"
+                                                            className="field"
+                                                            value={editingFundraiser?.link || ''}
+                                                            onChange={e => handleEditFundraiserField('link', e.target.value)}
+                                                        />
+                                                    </Field>
+                                                    <Field label="Photo" hint="replaces the current image">
+                                                        <div className="fr-image-field">
+                                                            <input
+                                                                type="file"
+                                                                className="field-file"
+                                                                accept="image/*"
+                                                                onChange={(e) => {
+                                                                    if (e.target.files && e.target.files[0]) {
+                                                                        handleEditFundraiserPhoto(e.target.files[0]);
+                                                                    }
+                                                                }}
+                                                            />
+                                                            {editingFundraiser?.photoFile ? (
+                                                                <img src={URL.createObjectURL(editingFundraiser.photoFile)} alt="Preview" className="fr-image-preview" />
+                                                            ) : editingFundraiser?.photoUrl ? (
+                                                                <img src={editingFundraiser.photoUrl} alt="Preview" className="fr-image-preview" />
+                                                            ) : null}
+                                                        </div>
+                                                    </Field>
                                                 </div>
-                                                <div className='fundraiser-form-group'>
-                                                    <label>Description:</label>
-                                                    <textarea
-                                                        className='input-light'
-                                                        value={editingFundraiser?.description || ''}
-                                                        onChange={e => handleEditFundraiserField('description', e.target.value)}
-                                                    />
+                                                <div className="row-actions">
+                                                    <button className="btn-primary" onClick={() => handleSaveFundraiser(idx)}>Save</button>
+                                                    <button className="btn-quiet" onClick={handleCancelEditFundraiser}>Cancel</button>
                                                 </div>
-                                                <div className='fundraiser-form-group'>
-                                                    <label>Donation Link:</label>
-                                                    <input
-                                                        type='text'
-                                                        className='input-light'
-                                                        value={editingFundraiser?.link || ''}
-                                                        onChange={e => handleEditFundraiserField('link', e.target.value)}
-                                                    />
-                                                </div>
-                                                <div className='fundraiser-form-group'>
-                                                    <label>Photo:</label>
-                                                    <input
-                                                        type='file'
-                                                        className='input-light'
-                                                        onChange={(e) => {
-                                                            if (e.target.files && e.target.files[0]) {
-                                                                handleEditFundraiserPhoto(e.target.files[0]);
-                                                            }
-                                                        }}
-                                                    />
-                                                    {editingFundraiser?.photoUrl && !editingFundraiser?.photoFile && (
-                                                        <img src={editingFundraiser.photoUrl} alt="Preview" className='fundraisers-dashboard-thumbnail' />
-                                                    )}
-                                                    {editingFundraiser?.photoFile && (
-                                                        <img src={URL.createObjectURL(editingFundraiser.photoFile)} alt="Preview" className='fundraisers-dashboard-thumbnail' />
-                                                    )}
-                                                </div>
-                                                <div className='fundraisers-dashboard-actions'>
-                                                    <button className='btn-primary' onClick={() => handleSaveFundraiser(idx)}>Save</button>
-                                                    <button className='btn-danger' onClick={handleCancelEditFundraiser}>Cancel</button>
-                                                </div>
-                                            </>
+                                            </div>
                                         ) : (
-                                            <>
-                                                <div className='fundraisers-dashboard-item-preview'>
-                                                    <img
-                                                        src={fundraiser.photoFile != undefined ? URL.createObjectURL(fundraiser.photoFile) : fundraiser.photoUrl ? fundraiser.photoUrl : ''}
-                                                        alt={fundraiser.name}
-                                                        className='fundraisers-dashboard-thumbnail'
-                                                    />
-                                                    <div className='fundraisers-dashboard-item-info'>
+                                            <div className="fr-item" key={idx}>
+                                                <div className="fr-main">
+                                                    {(fundraiser.photoFile || fundraiser.photoUrl) && (
+                                                        <img
+                                                            src={fundraiser.photoFile != undefined ? URL.createObjectURL(fundraiser.photoFile) : fundraiser.photoUrl}
+                                                            alt={fundraiser.name}
+                                                            className="fr-thumb"
+                                                        />
+                                                    )}
+                                                    <div className="fr-info">
                                                         <h4>{fundraiser.name}</h4>
-                                                        <p>{fundraiser.description}</p>
-                                                        <p className='fundraisers-dashboard-item-link'>{fundraiser.link}</p>
+                                                        <p className="fr-desc">{fundraiser.description}</p>
+                                                        <p className="fr-link">{fundraiser.link}</p>
                                                     </div>
                                                 </div>
-                                                <div className='fundraisers-dashboard-actions'>
-                                                    <button className={`btn-star ${fundraiser.isFeatured ? 'featured' : ''}`} onClick={() => handleToggleFeatured(idx)} title="Mark as featured">
+                                                <div className="row-actions">
+                                                    <button
+                                                        className="fr-star"
+                                                        aria-pressed={fundraiser.isFeatured}
+                                                        onClick={() => handleToggleFeatured(idx)}
+                                                        title={fundraiser.isFeatured ? 'Featured campaign' : 'Mark as featured'}
+                                                    >
                                                         {fundraiser.isFeatured ? '★' : '☆'}
                                                     </button>
-                                                    <button className='btn-primary' onClick={() => handleEditFundraiser(idx)}>Edit</button>
-                                                    <button className='btn-danger' onClick={() => handleDeleteFundraiser(idx)}>Delete</button>
+                                                    <button className="btn-quiet" onClick={() => handleEditFundraiser(idx)}>Edit</button>
+                                                    <button className="btn-quiet is-danger" onClick={() => handleDeleteFundraiser(idx)}>Delete</button>
                                                 </div>
-                                            </>
-                                        )}
+                                            </div>
+                                        )
+                                    ))}
+                                </div>
+
+                                <div className="fr-add">
+                                    <h3 className="fr-add-title">Add a fundraiser</h3>
+                                    <Field label="Name" htmlFor="fr-new-name">
+                                        <input
+                                            id="fr-new-name"
+                                            type="text"
+                                            className="field"
+                                            placeholder="Fundraiser name"
+                                            value={newFundraiser.name}
+                                            onChange={e => setNewFundraiser(new FundraiserEdit({ ...newFundraiser, name: e.target.value }))}
+                                        />
+                                    </Field>
+                                    <Field label="Description" htmlFor="fr-new-desc">
+                                        <textarea
+                                            id="fr-new-desc"
+                                            className="field"
+                                            rows={3}
+                                            placeholder="Fundraiser description"
+                                            value={newFundraiser.description}
+                                            onChange={e => setNewFundraiser(new FundraiserEdit({ ...newFundraiser, description: e.target.value }))}
+                                        />
+                                    </Field>
+                                    <Field label="Donation link" htmlFor="fr-new-link">
+                                        <input
+                                            id="fr-new-link"
+                                            type="text"
+                                            className="field"
+                                            placeholder="https://..."
+                                            value={newFundraiser.link}
+                                            onChange={e => setNewFundraiser(new FundraiserEdit({ ...newFundraiser, link: e.target.value }))}
+                                        />
+                                    </Field>
+                                    <Field label="Photo">
+                                        <div className="fr-image-field">
+                                            <input
+                                                type="file"
+                                                className="field-file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        setNewFundraiser(new FundraiserEdit({ ...newFundraiser, photoFile: e.target.files[0] }));
+                                                    }
+                                                }}
+                                            />
+                                            {newFundraiser.photoFile && (
+                                                <img src={URL.createObjectURL(newFundraiser.photoFile)} alt="Preview" className="fr-image-preview" />
+                                            )}
+                                        </div>
+                                    </Field>
+                                    <div>
+                                        <button className="btn-quiet" onClick={handleAddFundraiser}>Add fundraiser</button>
                                     </div>
-                                ))}
-                            </div>
-
-                            <div className='fundraisers-dashboard-add'>
-                                <h3 style={{ margin: '0 0 1rem 0' }}>Add New Fundraiser</h3>
-                                <div className='fundraiser-form-group'>
-                                    <label>Name:</label>
-                                    <input
-                                        type='text'
-                                        className='input-light'
-                                        placeholder='Fundraiser name'
-                                        value={newFundraiser.name}
-                                        onChange={e => setNewFundraiser(new FundraiserEdit({ ...newFundraiser, name: e.target.value }))}
-                                    />
                                 </div>
-                                <div className='fundraiser-form-group'>
-                                    <label>Description:</label>
-                                    <textarea
-                                        className='input-light'
-                                        placeholder='Fundraiser description'
-                                        value={newFundraiser.description}
-                                        onChange={e => setNewFundraiser(new FundraiserEdit({ ...newFundraiser, description: e.target.value }))}
-                                    />
-                                </div>
-                                <div className='fundraiser-form-group'>
-                                    <label>Donation Link:</label>
-                                    <input
-                                        type='text'
-                                        className='input-light'
-                                        placeholder='https://...'
-                                        value={newFundraiser.link}
-                                        onChange={e => setNewFundraiser(new FundraiserEdit({ ...newFundraiser, link: e.target.value }))}
-                                    />
-                                </div>
-                                <div className='fundraiser-form-group'>
-                                    <label>Photo:</label>
-                                    <input
-                                        type='file'
-                                        className='input-light'
-                                        onChange={(e) => {
-                                            if (e.target.files && e.target.files[0]) {
-                                                setNewFundraiser(new FundraiserEdit({ ...newFundraiser, photoFile: e.target.files[0] }));
-                                            }
-                                        }}
-                                    />
-                                    {newFundraiser.photoFile && (
-                                        <img src={URL.createObjectURL(newFundraiser.photoFile)} alt="Preview" className='fundraisers-dashboard-thumbnail' />
-                                    )}
-                                </div>
-                                <button className='btn-primary' onClick={handleAddFundraiser}>Add Fundraiser</button>
-                            </div>
-
-                            {canSave && !loadingSave &&
-                                <button className='btn-primary' onClick={saveFundraisers}>Save Changes</button>}
-                            {loadingSave && <div className='loader'></div>}
+                            </Panel>
                         </div>
-                    </section>
-                </>
-            ) : (
-                <div className='loader-container'><div className='loader'></div></div>
-            )}
+                    </>
+                )}
+            </main>
         </>
     )
 }

@@ -3,6 +3,31 @@ import type { DocumentData } from "firebase/firestore";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const ORIGIN = '/';
 
+/* Default landing-page copy. Used as the fallback whenever a PRSM field is
+   empty (e.g. older Firestore documents saved before these fields existed),
+   so the site renders the same text it always has until an admin edits it. */
+export const DEFAULT_COPY = {
+    heroKicker: 'Research to community care',
+    heroNote: '100% of donations go directly to the allergy research organizations we support.',
+    galleryKicker: 'Gallery Photos',
+    galleryTitle: 'Moments from our community',
+    gallerySubtitle: 'Highlights from recent events, recitals, and programs.',
+    aboutKicker: 'Our work',
+    aboutTitle: 'Who we are',
+    fundraiserKicker: 'Featured fundraiser',
+    eventsKicker: 'What’s next',
+    eventsTitle: 'Upcoming events',
+    eventsSubtitle: 'Join our music recitals, sports events, and educational sessions.',
+    newsletterKicker: 'Stay close',
+    newsletterTitle: 'Our reflections and updates',
+    newsletterSubtitle: 'Join our newsletter to get the latest updates on our research, events, and personal reflections.',
+    contactKicker: 'Get in touch',
+    contactTitle: 'Questions? Let’s talk.',
+    contactSubtitle: 'Whether you’re a donor, a family navigating allergies, or a researcher, we’d love to hear from you.',
+    footerMission: 'Supporting allergy research and the community it serves.',
+    footerFine: 'PRSM Allergy Foundation is an unincorporated nonprofit association. 100% of donations go directly to the external allergy research organizations we support.',
+} as const;
+
 export class Fundraiser {
     name: string;
     description: string;
@@ -291,6 +316,26 @@ export class PRSM {
     articlesSubtitle?: string;
     teamSubtitle?: string;
     ourStory?: string;
+    // Landing-page section copy (kickers / titles / subtitles). Optional so older
+    // documents fall back to DEFAULT_COPY at render time.
+    heroKicker?: string;
+    heroNote?: string;
+    galleryKicker?: string;
+    galleryTitle?: string;
+    gallerySubtitle?: string;
+    aboutKicker?: string;
+    aboutTitle?: string;
+    fundraiserKicker?: string;
+    eventsKicker?: string;
+    eventsTitle?: string;
+    newsletterKicker?: string;
+    newsletterTitle?: string;
+    newsletterSubtitle?: string;
+    contactKicker?: string;
+    contactTitle?: string;
+    contactSubtitle?: string;
+    footerMission?: string;
+    footerFine?: string;
 
     constructor({
         events,
@@ -308,6 +353,24 @@ export class PRSM {
         articlesSubtitle,
         teamSubtitle,
         ourStory,
+        heroKicker,
+        heroNote,
+        galleryKicker,
+        galleryTitle,
+        gallerySubtitle,
+        aboutKicker,
+        aboutTitle,
+        fundraiserKicker,
+        eventsKicker,
+        eventsTitle,
+        newsletterKicker,
+        newsletterTitle,
+        newsletterSubtitle,
+        contactKicker,
+        contactTitle,
+        contactSubtitle,
+        footerMission,
+        footerFine,
     }: {
         events: Event[];
         fundraisers: Fundraiser[];
@@ -324,6 +387,24 @@ export class PRSM {
         articlesSubtitle?: string;
         teamSubtitle?: string;
         ourStory?: string;
+        heroKicker?: string;
+        heroNote?: string;
+        galleryKicker?: string;
+        galleryTitle?: string;
+        gallerySubtitle?: string;
+        aboutKicker?: string;
+        aboutTitle?: string;
+        fundraiserKicker?: string;
+        eventsKicker?: string;
+        eventsTitle?: string;
+        newsletterKicker?: string;
+        newsletterTitle?: string;
+        newsletterSubtitle?: string;
+        contactKicker?: string;
+        contactTitle?: string;
+        contactSubtitle?: string;
+        footerMission?: string;
+        footerFine?: string;
     }) {
         this.events = events;
         this.fundraisers = fundraisers;
@@ -340,6 +421,24 @@ export class PRSM {
         this.articlesSubtitle = articlesSubtitle;
         this.teamSubtitle = teamSubtitle;
         this.ourStory = ourStory;
+        this.heroKicker = heroKicker;
+        this.heroNote = heroNote;
+        this.galleryKicker = galleryKicker;
+        this.galleryTitle = galleryTitle;
+        this.gallerySubtitle = gallerySubtitle;
+        this.aboutKicker = aboutKicker;
+        this.aboutTitle = aboutTitle;
+        this.fundraiserKicker = fundraiserKicker;
+        this.eventsKicker = eventsKicker;
+        this.eventsTitle = eventsTitle;
+        this.newsletterKicker = newsletterKicker;
+        this.newsletterTitle = newsletterTitle;
+        this.newsletterSubtitle = newsletterSubtitle;
+        this.contactKicker = contactKicker;
+        this.contactTitle = contactTitle;
+        this.contactSubtitle = contactSubtitle;
+        this.footerMission = footerMission;
+        this.footerFine = footerFine;
     }
 
     toMap(): Record<string, any> {
@@ -359,6 +458,24 @@ export class PRSM {
             articlesSubtitle: this.articlesSubtitle ?? '',
             teamSubtitle: this.teamSubtitle ?? '',
             ourStory: this.ourStory ?? '',
+            heroKicker: this.heroKicker ?? '',
+            heroNote: this.heroNote ?? '',
+            galleryKicker: this.galleryKicker ?? '',
+            galleryTitle: this.galleryTitle ?? '',
+            gallerySubtitle: this.gallerySubtitle ?? '',
+            aboutKicker: this.aboutKicker ?? '',
+            aboutTitle: this.aboutTitle ?? '',
+            fundraiserKicker: this.fundraiserKicker ?? '',
+            eventsKicker: this.eventsKicker ?? '',
+            eventsTitle: this.eventsTitle ?? '',
+            newsletterKicker: this.newsletterKicker ?? '',
+            newsletterTitle: this.newsletterTitle ?? '',
+            newsletterSubtitle: this.newsletterSubtitle ?? '',
+            contactKicker: this.contactKicker ?? '',
+            contactTitle: this.contactTitle ?? '',
+            contactSubtitle: this.contactSubtitle ?? '',
+            footerMission: this.footerMission ?? '',
+            footerFine: this.footerFine ?? '',
         };
     }
 
@@ -379,6 +496,24 @@ export class PRSM {
             articlesSubtitle: data.articlesSubtitle,
             teamSubtitle: data.teamSubtitle,
             ourStory: data.ourStory,
+            heroKicker: data.heroKicker,
+            heroNote: data.heroNote,
+            galleryKicker: data.galleryKicker,
+            galleryTitle: data.galleryTitle,
+            gallerySubtitle: data.gallerySubtitle,
+            aboutKicker: data.aboutKicker,
+            aboutTitle: data.aboutTitle,
+            fundraiserKicker: data.fundraiserKicker,
+            eventsKicker: data.eventsKicker,
+            eventsTitle: data.eventsTitle,
+            newsletterKicker: data.newsletterKicker,
+            newsletterTitle: data.newsletterTitle,
+            newsletterSubtitle: data.newsletterSubtitle,
+            contactKicker: data.contactKicker,
+            contactTitle: data.contactTitle,
+            contactSubtitle: data.contactSubtitle,
+            footerMission: data.footerMission,
+            footerFine: data.footerFine,
         });
     }
 

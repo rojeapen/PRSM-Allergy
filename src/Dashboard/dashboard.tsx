@@ -8,14 +8,31 @@ class SocialLinkEdit {
     this.id = params.id;
   }
 }
-import { StrictMode, useEffect, useState } from "react";
+import { StrictMode, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "../index.css";
 
 import "./dashboard.css";
+import {
+  Panel,
+  Field,
+  EmptyState,
+  SaveButton,
+  SectionRail,
+  DashboardSkeleton,
+  useDashboardRail,
+  type Section,
+} from "./shell";
 import Header from "../components/header";
 import { isUserLoggedIn } from "../api/auth";
-import { AboutTile, Article, Photo, PRSM, SocialMediaLink } from "../constants";
+import {
+  AboutTile,
+  Article,
+  DEFAULT_COPY,
+  Photo,
+  PRSM,
+  SocialMediaLink,
+} from "../constants";
 import {
   deletePhoto,
   getArticlesFresh,
@@ -33,17 +50,37 @@ createRoot(document.getElementById("root")!).render(
   </StrictMode>,
 );
 
+let galleryUidSeq = 0;
+
 class GalleryPhoto {
   url?: string;
   file?: File;
   id?: string;
+  // Stable client-side key so reordered tiles keep their identity in React
+  // (file-backed photos have no Firebase id until they're saved).
+  uid: string;
 
   constructor(params: { url?: string; file?: File; id?: string }) {
     this.url = params.url;
     this.file = params.file;
     this.id = params.id;
+    this.uid = `gp-${galleryUidSeq++}`;
   }
 }
+
+/* The six editable content areas, in scroll order. Drives the rail. */
+const SECTIONS: Section[] = [
+  { id: "hero", label: "Hero" },
+  { id: "gallery", label: "Gallery" },
+  { id: "about", label: "About" },
+  { id: "fundraiser", label: "Featured fundraiser" },
+  { id: "events-intro", label: "Events" },
+  { id: "newsletter-copy", label: "Newsletter" },
+  { id: "contact", label: "Contact" },
+  { id: "footer", label: "Footer" },
+  { id: "socials", label: "Social links" },
+  { id: "newsletter", label: "Send newsletter" },
+];
 
 function App() {
   // Socials state
@@ -70,6 +107,45 @@ function App() {
   const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
   const [canSaveGallery, setCanSaveGallery] = useState(false);
   const [loadingSaveGallery, setLoadingSaveGallery] = useState(false);
+
+  // Landing-page section copy (kickers / titles / subtitles).
+  const [heroKicker, setHeroKicker] = useState("");
+  const [heroNote, setHeroNote] = useState("");
+
+  const [galleryKicker, setGalleryKicker] = useState("");
+  const [galleryTitle, setGalleryTitle] = useState("");
+  const [gallerySubtitle, setGallerySubtitle] = useState("");
+  const [canSaveGalleryCopy, setCanSaveGalleryCopy] = useState(false);
+  const [loadingSaveGalleryCopy, setLoadingSaveGalleryCopy] = useState(false);
+
+  const [aboutKicker, setAboutKicker] = useState("");
+  const [aboutTitle, setAboutTitle] = useState("");
+
+  const [eventsKicker, setEventsKicker] = useState("");
+  const [eventsTitle, setEventsTitle] = useState("");
+
+  const [fundraiserKicker, setFundraiserKicker] = useState("");
+  const [canSaveFundraiserCopy, setCanSaveFundraiserCopy] = useState(false);
+  const [loadingSaveFundraiserCopy, setLoadingSaveFundraiserCopy] =
+    useState(false);
+
+  const [newsletterKicker, setNewsletterKicker] = useState("");
+  const [newsletterTitle, setNewsletterTitle] = useState("");
+  const [newsletterSubtitle, setNewsletterSubtitle] = useState("");
+  const [canSaveNewsletterCopy, setCanSaveNewsletterCopy] = useState(false);
+  const [loadingSaveNewsletterCopy, setLoadingSaveNewsletterCopy] =
+    useState(false);
+
+  const [contactKicker, setContactKicker] = useState("");
+  const [contactTitle, setContactTitle] = useState("");
+  const [contactSubtitle, setContactSubtitle] = useState("");
+  const [canSaveContactCopy, setCanSaveContactCopy] = useState(false);
+  const [loadingSaveContactCopy, setLoadingSaveContactCopy] = useState(false);
+
+  const [footerMission, setFooterMission] = useState("");
+  const [footerFine, setFooterFine] = useState("");
+  const [canSaveFooterCopy, setCanSaveFooterCopy] = useState(false);
+  const [loadingSaveFooterCopy, setLoadingSaveFooterCopy] = useState(false);
 
   // Newsletter state
   const [articles, setArticles] = useState<Article[]>([]);
@@ -106,6 +182,9 @@ function App() {
   const [canSaveAboutTiles, setCanSaveAboutTiles] = useState(false);
   const [loadingSaveAboutTiles, setLoadingSaveAboutTiles] = useState(false);
 
+  // Section rail / scrollspy
+  const { activeSection, goToSection } = useDashboardRail(SECTIONS, !!prsm);
+
   useEffect(() => {
     isUserLoggedIn((isLoggedIn) => {});
     getPRSMFresh().then((data) => {
@@ -128,7 +207,37 @@ function App() {
       );
       setSocialLinks(socials);
       setAboutSubtitle(data!.aboutSubtitle || "");
-      setUpcomingEventsSubtitle(data!.upcomingEventsSubtitle || "");
+      setUpcomingEventsSubtitle(
+        data!.upcomingEventsSubtitle || DEFAULT_COPY.eventsSubtitle,
+      );
+      // Initialize each copy field with its effective value: the saved text, or
+      // the live default when the document predates these fields.
+      setHeroKicker(data!.heroKicker || DEFAULT_COPY.heroKicker);
+      setHeroNote(data!.heroNote || DEFAULT_COPY.heroNote);
+      setGalleryKicker(data!.galleryKicker || DEFAULT_COPY.galleryKicker);
+      setGalleryTitle(data!.galleryTitle || DEFAULT_COPY.galleryTitle);
+      setGallerySubtitle(data!.gallerySubtitle || DEFAULT_COPY.gallerySubtitle);
+      setAboutKicker(data!.aboutKicker || DEFAULT_COPY.aboutKicker);
+      setAboutTitle(data!.aboutTitle || DEFAULT_COPY.aboutTitle);
+      setEventsKicker(data!.eventsKicker || DEFAULT_COPY.eventsKicker);
+      setEventsTitle(data!.eventsTitle || DEFAULT_COPY.eventsTitle);
+      setFundraiserKicker(
+        data!.fundraiserKicker || DEFAULT_COPY.fundraiserKicker,
+      );
+      setNewsletterKicker(
+        data!.newsletterKicker || DEFAULT_COPY.newsletterKicker,
+      );
+      setNewsletterTitle(data!.newsletterTitle || DEFAULT_COPY.newsletterTitle);
+      setNewsletterSubtitle(
+        data!.newsletterSubtitle || DEFAULT_COPY.newsletterSubtitle,
+      );
+      setContactKicker(data!.contactKicker || DEFAULT_COPY.contactKicker);
+      setContactTitle(data!.contactTitle || DEFAULT_COPY.contactTitle);
+      setContactSubtitle(
+        data!.contactSubtitle || DEFAULT_COPY.contactSubtitle,
+      );
+      setFooterMission(data!.footerMission || DEFAULT_COPY.footerMission);
+      setFooterFine(data!.footerFine || DEFAULT_COPY.footerFine);
       setAboutTiles(
         (data!.aboutTiles || []).map(
           (tile: any) =>
@@ -140,6 +249,7 @@ function App() {
       setArticles(data);
     });
   }, []);
+
   // About subtitle handlers
   const handleAboutSubtitleChange = (val: string) => {
     setAboutSubtitle(val);
@@ -154,6 +264,8 @@ function App() {
   const saveAboutSubtitle = async () => {
     if (!prsm) return;
     setLoadingSaveAboutSubtitle(true);
+    prsm.aboutKicker = aboutKicker;
+    prsm.aboutTitle = aboutTitle;
     prsm.aboutSubtitle = aboutSubtitle;
     await updatePRSM(prsm);
     setCanSaveAboutSubtitle(false);
@@ -164,10 +276,70 @@ function App() {
   const saveUpcomingEventsSubtitle = async () => {
     if (!prsm) return;
     setLoadingSaveUpcomingEventsSubtitle(true);
+    prsm.eventsKicker = eventsKicker;
+    prsm.eventsTitle = eventsTitle;
     prsm.upcomingEventsSubtitle = upcomingEventsSubtitle;
     await updatePRSM(prsm);
     setCanSaveUpcomingEventsSubtitle(false);
     setLoadingSaveUpcomingEventsSubtitle(false);
+    setPrsm(PRSM.fromMap(prsm.toMap()));
+  };
+
+  // Gallery / fundraiser / newsletter / contact section copy.
+  const saveGalleryCopy = async () => {
+    if (!prsm) return;
+    setLoadingSaveGalleryCopy(true);
+    prsm.galleryKicker = galleryKicker;
+    prsm.galleryTitle = galleryTitle;
+    prsm.gallerySubtitle = gallerySubtitle;
+    await updatePRSM(prsm);
+    setCanSaveGalleryCopy(false);
+    setLoadingSaveGalleryCopy(false);
+    setPrsm(PRSM.fromMap(prsm.toMap()));
+  };
+
+  const saveFundraiserCopy = async () => {
+    if (!prsm) return;
+    setLoadingSaveFundraiserCopy(true);
+    prsm.fundraiserKicker = fundraiserKicker;
+    await updatePRSM(prsm);
+    setCanSaveFundraiserCopy(false);
+    setLoadingSaveFundraiserCopy(false);
+    setPrsm(PRSM.fromMap(prsm.toMap()));
+  };
+
+  const saveNewsletterCopy = async () => {
+    if (!prsm) return;
+    setLoadingSaveNewsletterCopy(true);
+    prsm.newsletterKicker = newsletterKicker;
+    prsm.newsletterTitle = newsletterTitle;
+    prsm.newsletterSubtitle = newsletterSubtitle;
+    await updatePRSM(prsm);
+    setCanSaveNewsletterCopy(false);
+    setLoadingSaveNewsletterCopy(false);
+    setPrsm(PRSM.fromMap(prsm.toMap()));
+  };
+
+  const saveContactCopy = async () => {
+    if (!prsm) return;
+    setLoadingSaveContactCopy(true);
+    prsm.contactKicker = contactKicker;
+    prsm.contactTitle = contactTitle;
+    prsm.contactSubtitle = contactSubtitle;
+    await updatePRSM(prsm);
+    setCanSaveContactCopy(false);
+    setLoadingSaveContactCopy(false);
+    setPrsm(PRSM.fromMap(prsm.toMap()));
+  };
+
+  const saveFooterCopy = async () => {
+    if (!prsm) return;
+    setLoadingSaveFooterCopy(true);
+    prsm.footerMission = footerMission;
+    prsm.footerFine = footerFine;
+    await updatePRSM(prsm);
+    setCanSaveFooterCopy(false);
+    setLoadingSaveFooterCopy(false);
     setPrsm(PRSM.fromMap(prsm.toMap()));
   };
 
@@ -239,6 +411,8 @@ function App() {
     setLoadingSaveHero(true);
     prsm!.landingPageTitle = title;
     prsm!.landingPageSubtitle = subtitle;
+    prsm!.heroKicker = heroKicker;
+    prsm!.heroNote = heroNote;
 
     if (backgroundImage && typeof backgroundImage !== "string") {
       //delete old photo from storage
@@ -257,6 +431,22 @@ function App() {
 
   const handleAddGalleryPhoto = async (image: File) => {
     setGalleryPhotos([...galleryPhotos, new GalleryPhoto({ file: image })]);
+    setCanSaveGallery(true);
+  };
+
+  // Drag-to-reorder state for the gallery grid.
+  const galleryDragFrom = useRef<number | null>(null);
+  const [galleryDragIdx, setGalleryDragIdx] = useState<number | null>(null);
+  const [galleryDropIdx, setGalleryDropIdx] = useState<number | null>(null);
+
+  const handleReorderGalleryPhoto = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0) return;
+    setGalleryPhotos((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
     setCanSaveGallery(true);
   };
 
@@ -362,6 +552,17 @@ function App() {
     setPrsm(PRSM.fromMap(prsm!.toMap()));
   };
 
+  const fmtTime = (time: string) => {
+    try {
+      return new Date("1970-01-01T" + time).toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    } catch {
+      return time;
+    }
+  };
+
   const handleSendNewsletter = async () => {
     if (!prsm || articles.length === 0) return;
     setSendingNewsletter(true);
@@ -414,501 +615,851 @@ function App() {
     setSendingNewsletter(false);
   };
 
+  const includedCount = prsm ? prsm.events.length - excludedEventIdxs.size : 0;
+  const newsletterAlertKind = newsletterStatus
+    ? newsletterStatus.includes("success")
+      ? "success"
+      : newsletterStatus.includes("Failed")
+        ? "error"
+        : "info"
+    : "info";
+
   return (
     <>
       <Header isDashboardPage={true} />
-      {prsm ? (
-        <>
-          <section className={`dashboard-section light`}>
-            <div className="section-title">
-              <h1>Hero Section</h1>
-              <p>Edit the hero section of the main website</p>
-            </div>
-            <div className="section-content-horizontal">
-              <div className="hero-inputs-side">
-                <div className="section-item">
-                  <label htmlFor="title">Title: </label>
-                  <input
-                    type="text"
-                    id="title"
-                    className="input-light"
-                    value={title}
-                    onChange={(e) => {
-                      setTitle(e.target.value);
-                      setCanSaveHero(true);
-                    }}
-                  />
-                </div>
-                <div className="section-item">
-                  <label htmlFor="subtitle">Subtitle: </label>
-                  <input
-                    type="text"
-                    id="subtitle"
-                    className="input-light"
-                    value={subtitle}
-                    onChange={(e) => {
-                      setSubtitle(e.target.value);
-                      setCanSaveHero(true);
-                    }}
-                  />
-                </div>
-                <div className="section-item">
-                  <label htmlFor="background-image">Background Image: </label>
-                  <input
-                    type="file"
-                    id="background-image"
-                    className="input-light"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setBackgroundImage(e.target.files[0]);
-                        setCanSaveHero(true);
-                      }
-                    }}
-                  />
-                </div>
-                {canSaveHero && !loadingSaveHero && (
-                  <button className="btn-primary" onClick={saveHeroSection}>
-                    Save Changes
-                  </button>
-                )}
-                {loadingSaveHero && <div className="loader"></div>}
-              </div>
-              <div className="hero-preview-side">
-                <label>Preview Image</label>
-                <div className="hero-preview">
-                  {backgroundImage ? (
-                    typeof backgroundImage === "string" ? (
-                      <img
-                        src={backgroundImage}
-                        alt="Background Preview"
-                        className="hero-preview-image"
-                      />
-                    ) : (
-                      <img
-                        src={URL.createObjectURL(backgroundImage)}
-                        alt="Background Preview"
-                        className="hero-preview-image"
-                      />
-                    )
-                  ) : (
-                    <div className="no-image">No Image Selected</div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </section>
+      <main className="dash">
+        <div className="dash-head">
+          <p className="kicker">Site content</p>
+          <h1>Landing page</h1>
+          <p className="dash-head-sub">
+            Everything here renders on the public homepage. Each section saves
+            on its own and goes live the moment you save it.
+          </p>
+        </div>
 
-          {/* Gallery Management Section */}
-          <section className={`dashboard-section white`}>
-            <div className="section-title">
-              <h1>Gallery Photos</h1>
-              <p>
-                View, add, or delete gallery photos shown on the main website.
-              </p>
-            </div>
-            <div className="gallery-dashboard-content">
-              <div className="gallery-dashboard-list">
-                {galleryPhotos.length === 0 && (
-                  <div>No gallery photos yet.</div>
-                )}
-                {galleryPhotos.map((photo) => (
-                  <div className="gallery-dashboard-photo">
-                    <img
-                      src={photo.url ?? URL.createObjectURL(photo.file!)}
-                      alt="Gallery"
-                      className="gallery-dashboard-img"
-                    />
-                    <button
-                      className="btn-danger"
-                      onClick={() =>
-                        handleDeleteGalleryPhoto(photo.file ?? photo.url)
-                      }
+        {!prsm ? (
+          <DashboardSkeleton sections={SECTIONS} />
+        ) : (
+          <>
+            <SectionRail
+              sections={SECTIONS}
+              activeSection={activeSection}
+              goToSection={goToSection}
+            />
+
+            <div className="dash-main">
+              {/* ---- Hero ---- */}
+              <Panel
+                id="hero"
+                title="Hero section"
+                desc="The first thing visitors see: headline, supporting line, and the background image behind them."
+                action={
+                  <SaveButton
+                    dirty={canSaveHero}
+                    loading={loadingSaveHero}
+                    onClick={saveHeroSection}
+                  />
+                }
+              >
+                <div className="hero-editor">
+                  <div className="hero-fields">
+                    <Field label="Kicker" htmlFor="hero-kicker">
+                      <input
+                        type="text"
+                        id="hero-kicker"
+                        className="field"
+                        value={heroKicker}
+                        onChange={(e) => {
+                          setHeroKicker(e.target.value);
+                          setCanSaveHero(true);
+                        }}
+                      />
+                    </Field>
+                    <Field label="Title" htmlFor="hero-title">
+                      <input
+                        type="text"
+                        id="hero-title"
+                        className="field"
+                        value={title}
+                        onChange={(e) => {
+                          setTitle(e.target.value);
+                          setCanSaveHero(true);
+                        }}
+                      />
+                    </Field>
+                    <Field label="Subtitle" htmlFor="hero-subtitle">
+                      <input
+                        type="text"
+                        id="hero-subtitle"
+                        className="field"
+                        value={subtitle}
+                        onChange={(e) => {
+                          setSubtitle(e.target.value);
+                          setCanSaveHero(true);
+                        }}
+                      />
+                    </Field>
+                    <Field label="Note" htmlFor="hero-note">
+                      <input
+                        type="text"
+                        id="hero-note"
+                        className="field"
+                        value={heroNote}
+                        onChange={(e) => {
+                          setHeroNote(e.target.value);
+                          setCanSaveHero(true);
+                        }}
+                      />
+                    </Field>
+                    <Field
+                      label="Image"
+                      htmlFor="hero-bg"
+                      hint="replaces the current image"
                     >
-                      Delete
+                      <input
+                        type="file"
+                        id="hero-bg"
+                        accept="image/*"
+                        className="field-file"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setBackgroundImage(e.target.files[0]);
+                            setCanSaveHero(true);
+                          }
+                        }}
+                      />
+                    </Field>
+                  </div>
+
+                  {/* A faithful miniature of the live hero: same two-column layout,
+                      the same framed (uncropped) image, and the real headline copy. */}
+                  <div className="hero-preview-col">
+                    <span className="form-label">Live preview</span>
+                    <div className="hero-mini" aria-hidden="true">
+                      <div className="hero-mini-glow" />
+                      <div className="hero-mini-content">
+                        <p className="hero-mini-kicker">
+                          {heroKicker || DEFAULT_COPY.heroKicker}
+                        </p>
+                        <h3 className="hero-mini-title">
+                          {title || "Your headline goes here"}
+                        </h3>
+                        <p className="hero-mini-lede">
+                          {subtitle || "Your supporting line goes here"}
+                        </p>
+                        <span className="hero-mini-btn">
+                          Donate now <span aria-hidden="true">→</span>
+                        </span>
+                        <p className="hero-mini-note">
+                          <span className="hero-mini-note-marker" />
+                          {heroNote || DEFAULT_COPY.heroNote}
+                        </p>
+                      </div>
+                      <div className="hero-mini-figure">
+                        <div className="hero-mini-frame">
+                          {backgroundImage ? (
+                            <img
+                              src={
+                                typeof backgroundImage === "string"
+                                  ? backgroundImage
+                                  : URL.createObjectURL(backgroundImage)
+                              }
+                              alt="Hero preview"
+                            />
+                          ) : (
+                            <span className="no-image">No image selected</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Panel>
+
+              {/* ---- Gallery ---- */}
+              <Panel
+                id="gallery"
+                title="Gallery photos"
+                desc="The photo grid shown on the homepage. Drag a photo to reorder, add or remove images, then save."
+                action={
+                  <SaveButton
+                    dirty={canSaveGallery}
+                    loading={loadingSaveGallery}
+                    onClick={saveGallerySection}
+                  />
+                }
+              >
+                <div className="subblock">
+                  <Field label="Kicker" htmlFor="gallery-kicker">
+                    <input
+                      type="text"
+                      id="gallery-kicker"
+                      className="field"
+                      value={galleryKicker}
+                      onChange={(e) => {
+                        setGalleryKicker(e.target.value);
+                        setCanSaveGalleryCopy(true);
+                      }}
+                    />
+                  </Field>
+                  <Field label="Title" htmlFor="gallery-title">
+                    <input
+                      type="text"
+                      id="gallery-title"
+                      className="field"
+                      value={galleryTitle}
+                      onChange={(e) => {
+                        setGalleryTitle(e.target.value);
+                        setCanSaveGalleryCopy(true);
+                      }}
+                    />
+                  </Field>
+                  <Field label="Subtitle" htmlFor="gallery-subtitle">
+                    <input
+                      type="text"
+                      id="gallery-subtitle"
+                      className="field"
+                      value={gallerySubtitle}
+                      onChange={(e) => {
+                        setGallerySubtitle(e.target.value);
+                        setCanSaveGalleryCopy(true);
+                      }}
+                    />
+                  </Field>
+                  <div className="subblock-foot">
+                    <SaveButton
+                      dirty={canSaveGalleryCopy}
+                      loading={loadingSaveGalleryCopy}
+                      onClick={saveGalleryCopy}
+                      label="Save text"
+                    />
+                  </div>
+                </div>
+
+                {galleryPhotos.length === 0 && (
+                  <EmptyState>
+                    No gallery photos yet. Use the tile below to add your first
+                    one, then save.
+                  </EmptyState>
+                )}
+                <div className="photo-grid">
+                  {galleryPhotos.map((photo, idx) => (
+                    <div
+                      className={`photo${galleryDragIdx === idx ? " is-dragging" : ""}${galleryDropIdx === idx && galleryDragIdx !== idx ? " is-drop-target" : ""}`}
+                      key={photo.uid}
+                      draggable
+                      onDragStart={(e) => {
+                        galleryDragFrom.current = idx;
+                        setGalleryDragIdx(idx);
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "move";
+                        if (galleryDropIdx !== idx) setGalleryDropIdx(idx);
+                      }}
+                      onDragLeave={() => {
+                        setGalleryDropIdx((cur) => (cur === idx ? null : cur));
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (galleryDragFrom.current !== null) {
+                          handleReorderGalleryPhoto(galleryDragFrom.current, idx);
+                        }
+                        galleryDragFrom.current = null;
+                        setGalleryDragIdx(null);
+                        setGalleryDropIdx(null);
+                      }}
+                      onDragEnd={() => {
+                        galleryDragFrom.current = null;
+                        setGalleryDragIdx(null);
+                        setGalleryDropIdx(null);
+                      }}
+                    >
+                      <img
+                        src={photo.url ?? URL.createObjectURL(photo.file!)}
+                        alt="Gallery"
+                        draggable={false}
+                      />
+                      <button
+                        className="photo-del"
+                        aria-label="Delete photo"
+                        title="Delete photo"
+                        onClick={() =>
+                          handleDeleteGalleryPhoto(photo.file ?? photo.url)
+                        }
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                          strokeLinecap="round"
+                          aria-hidden="true"
+                        >
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                  <label className="photo-add">
+                    <span className="photo-add-plus" aria-hidden="true">
+                      +
+                    </span>
+                    Add photo
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleAddGalleryPhoto(e.target.files[0]);
+                          e.target.value = "";
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </Panel>
+
+              {/* ---- About ---- */}
+              <Panel
+                id="about"
+                title="About section"
+                desc="The mission subtitle and the supporting tiles beneath it."
+              >
+                <div className="subblock">
+                  <Field label="Kicker" htmlFor="about-kicker">
+                    <input
+                      type="text"
+                      id="about-kicker"
+                      className="field"
+                      value={aboutKicker}
+                      onChange={(e) => {
+                        setAboutKicker(e.target.value);
+                        setCanSaveAboutSubtitle(true);
+                      }}
+                    />
+                  </Field>
+                  <Field label="Title" htmlFor="about-title">
+                    <input
+                      type="text"
+                      id="about-title"
+                      className="field"
+                      value={aboutTitle}
+                      onChange={(e) => {
+                        setAboutTitle(e.target.value);
+                        setCanSaveAboutSubtitle(true);
+                      }}
+                    />
+                  </Field>
+                  <Field label="Section subtitle" htmlFor="about-subtitle">
+                    <input
+                      type="text"
+                      id="about-subtitle"
+                      className="field"
+                      value={aboutSubtitle}
+                      onChange={(e) => handleAboutSubtitleChange(e.target.value)}
+                    />
+                  </Field>
+                  <div className="subblock-foot">
+                    <SaveButton
+                      dirty={canSaveAboutSubtitle}
+                      loading={loadingSaveAboutSubtitle}
+                      onClick={saveAboutSubtitle}
+                      label="Save text"
+                    />
+                  </div>
+                </div>
+
+                <div className="subblock">
+                  <div className="subblock-head">
+                    <h3>About tiles</h3>
+                    <SaveButton
+                      dirty={canSaveAboutTiles}
+                      loading={loadingSaveAboutTiles}
+                      onClick={saveAboutTiles}
+                      label="Save tiles"
+                    />
+                  </div>
+
+                  {aboutTiles.length === 0 ? (
+                    <EmptyState>
+                      No tiles yet. Add a title and description below to build
+                      one.
+                    </EmptyState>
+                  ) : (
+                    <div className="row-list">
+                      {aboutTiles.map((tile, idx) =>
+                        editingAboutTileIdx === idx ? (
+                          <div className="row is-editing" key={idx}>
+                            <div className="row-edit-fields">
+                              <Field label="Title">
+                                <input
+                                  className="field"
+                                  type="text"
+                                  value={editingAboutTile?.title || ""}
+                                  onChange={(e) =>
+                                    handleEditAboutTileField(
+                                      "title",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </Field>
+                              <Field label="Description">
+                                <textarea
+                                  className="field"
+                                  value={editingAboutTile?.description || ""}
+                                  onChange={(e) =>
+                                    handleEditAboutTileField(
+                                      "description",
+                                      e.target.value,
+                                    )
+                                  }
+                                />
+                              </Field>
+                            </div>
+                            <div className="row-actions">
+                              <button
+                                className="btn-quiet"
+                                onClick={() => handleSaveAboutTile(idx)}
+                              >
+                                Done
+                              </button>
+                              <button
+                                className="btn-quiet"
+                                onClick={handleCancelEditAboutTile}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="row" key={idx}>
+                            <div className="row-info">
+                              <span className="row-title">{tile.title}</span>
+                              <span className="row-sub">
+                                {tile.description}
+                              </span>
+                            </div>
+                            <div className="row-actions">
+                              <button
+                                className="btn-quiet"
+                                onClick={() => handleEditAboutTile(idx)}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className="btn-quiet is-danger"
+                                onClick={() => handleDeleteAboutTile(idx)}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  )}
+
+                  <div className="add-row">
+                    <Field label="Title">
+                      <input
+                        className="field"
+                        type="text"
+                        placeholder="e.g. Patient education"
+                        value={newAboutTile.title}
+                        onChange={(e) =>
+                          setNewAboutTile(
+                            new AboutTile({
+                              ...newAboutTile,
+                              title: e.target.value,
+                            }),
+                          )
+                        }
+                      />
+                    </Field>
+                    <Field label="Description">
+                      <input
+                        className="field"
+                        type="text"
+                        placeholder="One supporting sentence"
+                        value={newAboutTile.description}
+                        onChange={(e) =>
+                          setNewAboutTile(
+                            new AboutTile({
+                              ...newAboutTile,
+                              description: e.target.value,
+                            }),
+                          )
+                        }
+                      />
+                    </Field>
+                    <button className="btn-quiet" onClick={handleAddAboutTile}>
+                      Add tile
                     </button>
                   </div>
-                ))}
-              </div>
+                </div>
+              </Panel>
 
-              <div className="gallery-dashboard-upload">
-                <label htmlFor="gallery-upload">Add Photo:</label>
-                <input
-                  type="file"
-                  id="gallery-upload"
-                  className="input-light"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleAddGalleryPhoto(e.target.files[0]);
+              {/* ---- Featured fundraiser ---- */}
+              <Panel
+                id="fundraiser"
+                title="Featured fundraiser"
+                desc="The small label above the featured fundraiser on the homepage."
+                action={
+                  <SaveButton
+                    dirty={canSaveFundraiserCopy}
+                    loading={loadingSaveFundraiserCopy}
+                    onClick={saveFundraiserCopy}
+                  />
+                }
+              >
+                <Field label="Kicker" htmlFor="fundraiser-kicker">
+                  <input
+                    type="text"
+                    id="fundraiser-kicker"
+                    className="field"
+                    value={fundraiserKicker}
+                    onChange={(e) => {
+                      setFundraiserKicker(e.target.value);
+                      setCanSaveFundraiserCopy(true);
+                    }}
+                  />
+                </Field>
+              </Panel>
+
+              {/* ---- Events intro ---- */}
+              <Panel
+                id="events-intro"
+                title="Upcoming events intro"
+                desc="The heading and supporting line above the events list on the homepage."
+                action={
+                  <SaveButton
+                    dirty={canSaveUpcomingEventsSubtitle}
+                    loading={loadingSaveUpcomingEventsSubtitle}
+                    onClick={saveUpcomingEventsSubtitle}
+                  />
+                }
+              >
+                <Field label="Kicker" htmlFor="events-kicker">
+                  <input
+                    type="text"
+                    id="events-kicker"
+                    className="field"
+                    value={eventsKicker}
+                    onChange={(e) => {
+                      setEventsKicker(e.target.value);
+                      setCanSaveUpcomingEventsSubtitle(true);
+                    }}
+                  />
+                </Field>
+                <Field label="Title" htmlFor="events-title">
+                  <input
+                    type="text"
+                    id="events-title"
+                    className="field"
+                    value={eventsTitle}
+                    onChange={(e) => {
+                      setEventsTitle(e.target.value);
+                      setCanSaveUpcomingEventsSubtitle(true);
+                    }}
+                  />
+                </Field>
+                <Field label="Subtitle" htmlFor="events-subtitle">
+                  <input
+                    type="text"
+                    id="events-subtitle"
+                    className="field"
+                    value={upcomingEventsSubtitle}
+                    onChange={(e) =>
+                      handleUpcomingEventsSubtitleChange(e.target.value)
                     }
-                  }}
-                />
-              </div>
-              {canSaveGallery && !loadingSaveGallery && (
-                <button className="btn-primary" onClick={saveGallerySection}>
-                  Save Changes
-                </button>
-              )}
-              {loadingSaveGallery && <div className="loader"></div>}
-            </div>
-          </section>
+                  />
+                </Field>
+              </Panel>
 
-          {/* About Section Management */}
-          <section className={`dashboard-section light`}>
-            <div className="section-title">
-              <h1>About Section</h1>
-              <p>
-                Edit the about subtitle and about tiles shown on the main
-                website.
-              </p>
-            </div>
-            <div className="section-content">
-              <div
-                className="section-item"
-                style={{ width: "100%", maxWidth: 600 }}
+              {/* ---- Newsletter section copy ---- */}
+              <Panel
+                id="newsletter-copy"
+                title="Newsletter section"
+                desc="The heading and supporting line above the newsletter sign-up form on the homepage."
+                action={
+                  <SaveButton
+                    dirty={canSaveNewsletterCopy}
+                    loading={loadingSaveNewsletterCopy}
+                    onClick={saveNewsletterCopy}
+                  />
+                }
               >
-                <label htmlFor="about-subtitle" style={{ minWidth: 100 }}>
-                  Subtitle:
-                </label>
-                <input
-                  type="text"
-                  id="about-subtitle"
-                  className="input-light"
-                  value={aboutSubtitle}
-                  onChange={(e) => handleAboutSubtitleChange(e.target.value)}
-                  style={{ flex: 1 }}
-                />
-                {canSaveAboutSubtitle && !loadingSaveAboutSubtitle && (
-                  <button className="btn-primary" onClick={saveAboutSubtitle}>
-                    Save
-                  </button>
-                )}
-                {loadingSaveAboutSubtitle && <div className="loader"></div>}
-              </div>
-              <div
-                style={{ width: "100%", maxWidth: 600, textAlign: "center" }}
+                <Field label="Kicker" htmlFor="newsletter-copy-kicker">
+                  <input
+                    type="text"
+                    id="newsletter-copy-kicker"
+                    className="field"
+                    value={newsletterKicker}
+                    onChange={(e) => {
+                      setNewsletterKicker(e.target.value);
+                      setCanSaveNewsletterCopy(true);
+                    }}
+                  />
+                </Field>
+                <Field label="Title" htmlFor="newsletter-copy-title">
+                  <input
+                    type="text"
+                    id="newsletter-copy-title"
+                    className="field"
+                    value={newsletterTitle}
+                    onChange={(e) => {
+                      setNewsletterTitle(e.target.value);
+                      setCanSaveNewsletterCopy(true);
+                    }}
+                  />
+                </Field>
+                <Field label="Subtitle" htmlFor="newsletter-copy-subtitle">
+                  <input
+                    type="text"
+                    id="newsletter-copy-subtitle"
+                    className="field"
+                    value={newsletterSubtitle}
+                    onChange={(e) => {
+                      setNewsletterSubtitle(e.target.value);
+                      setCanSaveNewsletterCopy(true);
+                    }}
+                  />
+                </Field>
+              </Panel>
+
+              {/* ---- Contact section copy ---- */}
+              <Panel
+                id="contact"
+                title="Contact section"
+                desc="The heading and supporting line above the contact form on the homepage."
+                action={
+                  <SaveButton
+                    dirty={canSaveContactCopy}
+                    loading={loadingSaveContactCopy}
+                    onClick={saveContactCopy}
+                  />
+                }
               >
-                <h3 style={{ margin: "1rem 0 0.5rem 0" }}>About Tiles</h3>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "1rem",
-                  }}
-                >
-                  {aboutTiles.length === 0 && <div>No about tiles yet.</div>}
-                  {aboutTiles.map((tile, idx) => (
-                    <div
-                      className="socials-dashboard-item"
-                      key={idx}
-                      style={{ alignItems: "flex-start" }}
-                    >
-                      {editingAboutTileIdx === idx ? (
-                        <>
-                          <div
-                            className="socials-dashboard-info"
-                            style={{
-                              flex: 1,
-                              flexDirection: "column",
-                              gap: "0.5rem",
-                            }}
-                          >
-                            <input
-                              className="input-light socials-input"
-                              type="text"
-                              value={editingAboutTile?.title || ""}
-                              placeholder="Title"
-                              onChange={(e) =>
-                                handleEditAboutTileField(
-                                  "title",
-                                  e.target.value,
-                                )
-                              }
-                            />
-                            <input
-                              className="input-light socials-input"
-                              type="text"
-                              value={editingAboutTile?.description || ""}
-                              placeholder="Description"
-                              onChange={(e) =>
-                                handleEditAboutTileField(
-                                  "description",
-                                  e.target.value,
-                                )
-                              }
-                            />
+                <Field label="Kicker" htmlFor="contact-kicker">
+                  <input
+                    type="text"
+                    id="contact-kicker"
+                    className="field"
+                    value={contactKicker}
+                    onChange={(e) => {
+                      setContactKicker(e.target.value);
+                      setCanSaveContactCopy(true);
+                    }}
+                  />
+                </Field>
+                <Field label="Title" htmlFor="contact-title">
+                  <input
+                    type="text"
+                    id="contact-title"
+                    className="field"
+                    value={contactTitle}
+                    onChange={(e) => {
+                      setContactTitle(e.target.value);
+                      setCanSaveContactCopy(true);
+                    }}
+                  />
+                </Field>
+                <Field label="Subtitle" htmlFor="contact-subtitle">
+                  <input
+                    type="text"
+                    id="contact-subtitle"
+                    className="field"
+                    value={contactSubtitle}
+                    onChange={(e) => {
+                      setContactSubtitle(e.target.value);
+                      setCanSaveContactCopy(true);
+                    }}
+                  />
+                </Field>
+              </Panel>
+
+              {/* ---- Footer copy ---- */}
+              <Panel
+                id="footer"
+                title="Footer"
+                desc="The mission tagline and the fine print at the bottom of every page."
+                action={
+                  <SaveButton
+                    dirty={canSaveFooterCopy}
+                    loading={loadingSaveFooterCopy}
+                    onClick={saveFooterCopy}
+                  />
+                }
+              >
+                <Field label="Mission tagline" htmlFor="footer-mission">
+                  <input
+                    type="text"
+                    id="footer-mission"
+                    className="field"
+                    value={footerMission}
+                    onChange={(e) => {
+                      setFooterMission(e.target.value);
+                      setCanSaveFooterCopy(true);
+                    }}
+                  />
+                </Field>
+                <Field label="Fine print" htmlFor="footer-fine">
+                  <textarea
+                    id="footer-fine"
+                    className="field"
+                    rows={3}
+                    value={footerFine}
+                    onChange={(e) => {
+                      setFooterFine(e.target.value);
+                      setCanSaveFooterCopy(true);
+                    }}
+                  />
+                </Field>
+              </Panel>
+
+              {/* ---- Social links ---- */}
+              <Panel
+                id="socials"
+                title="Social media links"
+                desc="Links shown in the footer and shared across the site."
+                action={
+                  <SaveButton
+                    dirty={canSaveSocials}
+                    loading={loadingSaveSocials}
+                    onClick={saveSocialsSection}
+                  />
+                }
+              >
+                {socialLinks.length === 0 ? (
+                  <EmptyState>
+                    No social links yet. Add a platform and URL below.
+                  </EmptyState>
+                ) : (
+                  <div className="row-list">
+                    {socialLinks.map((link, idx) =>
+                      editingSocialIdx === idx ? (
+                        <div className="row is-editing" key={idx}>
+                          <div className="row-edit-fields">
+                            <Field label="Platform">
+                              <input
+                                className="field"
+                                type="text"
+                                value={editingSocial?.platform || ""}
+                                onChange={(e) =>
+                                  handleEditSocialField(
+                                    "platform",
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </Field>
+                            <Field label="URL">
+                              <input
+                                className="field"
+                                type="text"
+                                value={editingSocial?.url || ""}
+                                onChange={(e) =>
+                                  handleEditSocialField("url", e.target.value)
+                                }
+                              />
+                            </Field>
                           </div>
-                          <div className="socials-dashboard-actions">
+                          <div className="row-actions">
                             <button
-                              className="btn-primary"
-                              onClick={() => handleSaveAboutTile(idx)}
+                              className="btn-quiet"
+                              onClick={() => handleSaveSocial(idx)}
                             >
-                              Save
+                              Done
                             </button>
                             <button
-                              className="btn-danger"
-                              onClick={handleCancelEditAboutTile}
+                              className="btn-quiet"
+                              onClick={handleCancelEditSocial}
                             >
                               Cancel
                             </button>
                           </div>
-                        </>
+                        </div>
                       ) : (
-                        <>
-                          <div
-                            className="socials-dashboard-info"
-                            style={{
-                              flex: 1,
-                              flexDirection: "column",
-                              gap: "0.5rem",
-                            }}
-                          >
-                            <label htmlFor="">{tile.title}</label>
-                            <label htmlFor="">{tile.description}</label>
+                        <div className="row" key={idx}>
+                          <div className="row-info">
+                            <span className="row-title">{link.platform}</span>
+                            <span className="row-sub">{link.url}</span>
                           </div>
-                          <div className="socials-dashboard-actions">
+                          <div className="row-actions">
                             <button
-                              className="btn-primary"
-                              onClick={() => handleEditAboutTile(idx)}
+                              className="btn-quiet"
+                              onClick={() => handleEditSocial(idx)}
                             >
                               Edit
                             </button>
                             <button
-                              className="btn-danger"
-                              onClick={() => handleDeleteAboutTile(idx)}
+                              className="btn-quiet is-danger"
+                              onClick={() => handleDeleteSocial(idx)}
                             >
                               Delete
                             </button>
                           </div>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <div
-                  className="socials-dashboard-add"
-                  style={{ marginTop: "1rem" }}
-                >
-                  <input
-                    className="input-light socials-input"
-                    type="text"
-                    value={newAboutTile.title}
-                    placeholder="Title"
-                    onChange={(e) =>
-                      setNewAboutTile(
-                        new AboutTile({
-                          ...newAboutTile,
-                          title: e.target.value,
-                        }),
-                      )
-                    }
-                  />
-                  <input
-                    className="input-light socials-input"
-                    type="text"
-                    value={newAboutTile.description}
-                    placeholder="Description"
-                    onChange={(e) =>
-                      setNewAboutTile(
-                        new AboutTile({
-                          ...newAboutTile,
-                          description: e.target.value,
-                        }),
-                      )
-                    }
-                  />
-                  <button className="btn-primary" onClick={handleAddAboutTile}>
-                    Add
-                  </button>
-                </div>
-                {canSaveAboutTiles && !loadingSaveAboutTiles && (
-                  <button
-                    className="btn-primary"
-                    style={{ marginTop: "1rem" }}
-                    onClick={saveAboutTiles}
-                  >
-                    Save Changes
-                  </button>
-                )}
-                {loadingSaveAboutTiles && <div className="loader"></div>}
-              </div>
-            </div>
-          </section>
-
-          <section className={`dashboard-section white`}>
-            <div className="section-title">
-              <h1>Upcoming Events Section</h1>
-              <p>Edit the upcoming events subtitle</p>
-            </div>
-            <div className="section-content">
-              <div
-                className="section-item"
-                style={{ width: "100%", maxWidth: 600 }}
-              >
-                <label htmlFor="about-subtitle" style={{ minWidth: 100 }}>
-                  Subtitle:
-                </label>
-                <input
-                  type="text"
-                  id="upcomingEvents-subtitle"
-                  className="input-light"
-                  value={upcomingEventsSubtitle}
-                  onChange={(e) =>
-                    handleUpcomingEventsSubtitleChange(e.target.value)
-                  }
-                  style={{ flex: 1 }}
-                />
-                {canSaveUpcomingEventsSubtitle &&
-                  !loadingSaveUpcomingEventsSubtitle && (
-                    <button
-                      className="btn-primary"
-                      onClick={saveUpcomingEventsSubtitle}
-                    >
-                      Save
-                    </button>
-                  )}
-                {loadingSaveUpcomingEventsSubtitle && (
-                  <div className="loader"></div>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* Social Media Links Management Section */}
-          <section className={`dashboard-section light`}>
-            <div className="section-title">
-              <h1>Social Media Links</h1>
-              <p>
-                View, add, edit, or delete social media links shown on the main
-                website.
-              </p>
-            </div>
-            <div className="socials-dashboard-content">
-              <div className="socials-dashboard-list">
-                {socialLinks.length === 0 && (
-                  <div>No social media links yet.</div>
-                )}
-                {socialLinks.map((link, idx) => (
-                  <div className="socials-dashboard-item" key={idx}>
-                    {editingSocialIdx === idx ? (
-                      <>
-                        <input
-                          className="input-light socials-input"
-                          type="text"
-                          value={editingSocial?.platform || ""}
-                          placeholder="Platform"
-                          onChange={(e) =>
-                            handleEditSocialField("platform", e.target.value)
-                          }
-                        />
-                        <input
-                          className="input-light socials-input"
-                          type="text"
-                          value={editingSocial?.url || ""}
-                          placeholder="URL"
-                          onChange={(e) =>
-                            handleEditSocialField("url", e.target.value)
-                          }
-                        />
-
-                        <button
-                          className="btn-primary"
-                          onClick={() => handleSaveSocial(idx)}
-                        >
-                          Save
-                        </button>
-                        <button
-                          className="btn-danger"
-                          onClick={handleCancelEditSocial}
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <div className="socials-dashboard-info">
-                          <label htmlFor="">{link.platform}</label>
-                          <label htmlFor="">{link.url}</label>
                         </div>
-                        <div className="socials-dashboard-actions">
-                          <button
-                            className="btn-primary"
-                            onClick={() => handleEditSocial(idx)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            className="btn-danger"
-                            onClick={() => handleDeleteSocial(idx)}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </>
+                      ),
                     )}
                   </div>
-                ))}
-              </div>
-              <div className="socials-dashboard-add">
-                <input
-                  className="input-light socials-input"
-                  type="text"
-                  value={newSocial.platform}
-                  placeholder="Platform"
-                  onChange={(e) =>
-                    setNewSocial(
-                      new SocialLinkEdit({
-                        ...newSocial,
-                        platform: e.target.value,
-                      }),
-                    )
-                  }
-                />
-                <input
-                  className="input-light socials-input"
-                  type="text"
-                  value={newSocial.url}
-                  placeholder="URL"
-                  onChange={(e) =>
-                    setNewSocial(
-                      new SocialLinkEdit({ ...newSocial, url: e.target.value }),
-                    )
-                  }
-                />
-                <button className="btn-primary" onClick={handleAddSocial}>
-                  Add
-                </button>
-              </div>
-              {canSaveSocials && !loadingSaveSocials && (
-                <button className="btn-primary" onClick={saveSocialsSection}>
-                  Save Changes
-                </button>
-              )}
-              {loadingSaveSocials && <div className="loader"></div>}
-            </div>
-          </section>
+                )}
 
-          {/* Send Newsletter Section */}
-          <section className={`dashboard-section white`}>
-            <div className="section-title">
-              <h1>Send Newsletter</h1>
-              <p>
-                Send a newsletter email to all subscribers with a featured
-                article, upcoming events, and a fundraiser.
-              </p>
-            </div>
-            <div className="socials-dashboard-content">
-              <div style={{ width: "100%", maxWidth: 600 }}>
-                <div
-                  className="section-item"
-                  style={{ marginBottom: "1.5rem" }}
-                >
-                  <label htmlFor="newsletter-article" style={{ minWidth: 120 }}>
-                    Article:
-                  </label>
+                <div className="add-row">
+                  <Field label="Platform">
+                    <input
+                      className="field"
+                      type="text"
+                      placeholder="e.g. Instagram"
+                      value={newSocial.platform}
+                      onChange={(e) =>
+                        setNewSocial(
+                          new SocialLinkEdit({
+                            ...newSocial,
+                            platform: e.target.value,
+                          }),
+                        )
+                      }
+                    />
+                  </Field>
+                  <Field label="URL">
+                    <input
+                      className="field"
+                      type="text"
+                      placeholder="https://"
+                      value={newSocial.url}
+                      onChange={(e) =>
+                        setNewSocial(
+                          new SocialLinkEdit({
+                            ...newSocial,
+                            url: e.target.value,
+                          }),
+                        )
+                      }
+                    />
+                  </Field>
+                  <button className="btn-quiet" onClick={handleAddSocial}>
+                    Add link
+                  </button>
+                </div>
+              </Panel>
+
+              {/* ---- Newsletter ---- */}
+              <Panel
+                id="newsletter"
+                title="Send newsletter"
+                desc="Email every subscriber a featured article, the upcoming events, and a fundraiser."
+              >
+                <Field label="Featured article" htmlFor="newsletter-article">
                   <select
                     id="newsletter-article"
-                    className="input-light"
-                    style={{ flex: 1 }}
+                    className="field"
                     value={selectedArticleIdx}
                     onChange={(e) =>
                       setSelectedArticleIdx(Number(e.target.value))
@@ -923,93 +1474,60 @@ function App() {
                       </option>
                     ))}
                   </select>
-                </div>
+                </Field>
 
-                <div style={{ marginBottom: "1.5rem" }}>
-                  <label style={{ fontWeight: 600 }}>
-                    Events ({prsm.events.length - excludedEventIdxs.size}/
-                    {prsm.events.length}):
-                  </label>
-                  <div
-                    style={{
-                      marginTop: "0.5rem",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "0.5rem",
-                    }}
-                  >
-                    {prsm.events.length === 0 && (
-                      <p style={{ color: "#888" }}>No events to include.</p>
-                    )}
-                    {prsm.events.map((event, idx) => {
-                      const excluded = excludedEventIdxs.has(idx);
-                      return (
-                        <div
-                          key={idx}
-                          style={{
-                            background: excluded ? "#f0f0f0" : "#f6fbfd",
-                            borderRadius: 8,
-                            padding: "0.75rem 1rem",
-                            borderLeft: `3px solid ${excluded ? "#ccc" : "#008080"}`,
-                            opacity: excluded ? 0.5 : 1,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                          }}
-                        >
-                          <div>
-                            <strong>{event.title}</strong>
-                            <br />
-                            <span
-                              style={{ fontSize: "0.85rem", color: "#555" }}
-                            >
-                              {event.displayDate} • {event.time}
-                            </span>
-                          </div>
-                          <button
-                            onClick={() => {
-                              setExcludedEventIdxs((prev) => {
-                                const next = new Set(prev);
-                                if (excluded) next.delete(idx);
-                                else next.add(idx);
-                                return next;
-                              });
-                            }}
-                            style={{
-                              background: excluded ? "#008080" : "transparent",
-                              color: excluded ? "#fff" : "#e74c3c",
-                              border: excluded ? "none" : "1px solid #e74c3c",
-                              borderRadius: 6,
-                              padding: "0.3rem 0.7rem",
-                              cursor: "pointer",
-                              fontSize: "0.8rem",
-                              fontWeight: 600,
-                              whiteSpace: "nowrap",
-                              marginLeft: "0.75rem",
-                            }}
+                <div className="field-group">
+                  <span className="form-label">
+                    Events to include
+                    <span className="form-hint">
+                      {" "}
+                      · {includedCount} of {prsm.events.length} selected
+                    </span>
+                  </span>
+                  {prsm.events.length === 0 ? (
+                    <EmptyState>No events to include.</EmptyState>
+                  ) : (
+                    <div className="nl-events">
+                      {prsm.events.map((event, idx) => {
+                        const excluded = excludedEventIdxs.has(idx);
+                        return (
+                          <label
+                            key={idx}
+                            className={`nl-event${excluded ? " is-excluded" : ""}`}
                           >
-                            {excluded ? "Include" : "Remove"}
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
+                            <input
+                              type="checkbox"
+                              className="nl-check"
+                              checked={!excluded}
+                              onChange={() => {
+                                setExcludedEventIdxs((prev) => {
+                                  const next = new Set(prev);
+                                  if (excluded) next.delete(idx);
+                                  else next.add(idx);
+                                  return next;
+                                });
+                              }}
+                            />
+                            <div className="nl-event-info">
+                              <span className="row-title">{event.title}</span>
+                              <span className="row-sub">
+                                {event.displayDate} · {fmtTime(event.time)}
+                              </span>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
-                <div
-                  className="section-item"
-                  style={{ marginBottom: "1.5rem" }}
+                <Field
+                  label="Featured fundraiser"
+                  htmlFor="newsletter-fundraiser"
                 >
-                  <label
-                    htmlFor="newsletter-fundraiser"
-                    style={{ minWidth: 120 }}
-                  >
-                    Fundraiser:
-                  </label>
                   <select
                     id="newsletter-fundraiser"
-                    className="input-light"
-                    style={{ flex: 1 }}
+                    className="field"
                     value={selectedFundraiserIdx}
                     onChange={(e) =>
                       setSelectedFundraiserIdx(Number(e.target.value))
@@ -1024,46 +1542,37 @@ function App() {
                       </option>
                     ))}
                   </select>
-                </div>
+                </Field>
 
-                {!sendingNewsletter && (
+                <div className="newsletter-foot">
                   <button
                     className="btn-primary"
                     onClick={handleSendNewsletter}
-                    disabled={articles.length === 0}
-                    style={{
-                      width: "100%",
-                      padding: "0.75rem",
-                      fontSize: "1rem",
-                    }}
+                    disabled={articles.length === 0 || sendingNewsletter}
                   >
-                    Send Newsletter
+                    {sendingNewsletter ? (
+                      <>
+                        <span className="spinner-sm" aria-hidden="true" />
+                        Sending…
+                      </>
+                    ) : (
+                      "Send newsletter"
+                    )}
                   </button>
-                )}
-                {sendingNewsletter && <div className="loader"></div>}
-                {newsletterStatus && (
-                  <p
-                    style={{
-                      marginTop: "1rem",
-                      textAlign: "center",
-                      color: newsletterStatus.includes("success")
-                        ? "#008080"
-                        : "#e74c3c",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {newsletterStatus}
-                  </p>
-                )}
-              </div>
+                  {newsletterStatus && (
+                    <div
+                      className={`alert alert-${newsletterAlertKind}`}
+                      role="status"
+                    >
+                      {newsletterStatus}
+                    </div>
+                  )}
+                </div>
+              </Panel>
             </div>
-          </section>
-        </>
-      ) : (
-        <div className="loader-container">
-          <div className="loader"></div>
-        </div>
-      )}
+          </>
+        )}
+      </main>
     </>
   );
 }

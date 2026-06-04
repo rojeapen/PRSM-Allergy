@@ -4,6 +4,7 @@ import '../index.css'
 import './article-detail.css'
 import Header from '../components/header';
 import Footer from '../components/footer';
+import Reveal from '../components/reveal';
 import { PRSM, Article, ORIGIN } from '../constants';
 import { getPRSM, getArticle } from '../api/db';
 
@@ -13,45 +14,88 @@ createRoot(document.getElementById('root')!).render(
     </StrictMode>,
 )
 
+type Status = 'loading' | 'found' | 'notfound';
+
 function ArticleDetailPage() {
     const [prsm, setPrsm] = useState<PRSM | null>(null);
     const [article, setArticle] = useState<Article | null>(null);
+    const [status, setStatus] = useState<Status>('loading');
 
     useEffect(() => {
         getPRSM().then(data => setPrsm(data));
 
-        const params = new URLSearchParams(window.location.search);
-        const articleId = params.get('id');
-        if (articleId) {
-            getArticle(articleId).then(data => setArticle(data));
+        const articleId = new URLSearchParams(window.location.search).get('id');
+        if (!articleId) {
+            setStatus('notfound');
+            return;
         }
+        getArticle(articleId)
+            .then(data => {
+                setArticle(data);
+                setStatus(data ? 'found' : 'notfound');
+            })
+            .catch(() => setStatus('notfound'));
     }, []);
+
+    if (status === 'loading') {
+        return (
+            <div className="loader-container" role="status" aria-label="Loading article">
+                <div className="loader"></div>
+            </div>
+        );
+    }
 
     return (
         <>
             <Header isArticlePage={true} />
-            <main className="article-detail-main">
-                {article ? (
-                    <>
-                        <div className="article-detail-header">
-                            <h1>{article.title}</h1>
-                            <p className="article-date">{article.getDisplayDate()}</p>
-                        </div>
-                        <div className="article-detail-container">
-                            <span className="article-back-link" onClick={() => window.location.href = ORIGIN + 'Articles/'}>
-                                &larr; Back to Articles
-                            </span>
-                            {article.mainImage && (
-                                <img className="article-detail-main-image" src={article.mainImage.url} alt={article.title} />
-                            )}
-                            <div className="article-detail-body"
-                                dangerouslySetInnerHTML={{ __html: article.body }} />
-                        </div>
-                    </>
+            <main className="aread">
+                {status === 'found' && article ? (
+                    <div className="shell aread-shell">
+                        <a className="aread-back" href={ORIGIN + 'Articles/'}>
+                            <span aria-hidden="true">←</span> Back to articles
+                        </a>
+
+                        <header className="aread-head">
+                            <p className="kicker">
+                                <time dateTime={article.updatedAt}>{article.getDisplayDate()}</time>
+                            </p>
+                            <h1 className="aread-title">{article.title}</h1>
+                        </header>
+
+                        {article.mainImage && (
+                            <Reveal className="aread-figure">
+                                <div className="aread-frame">
+                                    <img src={article.mainImage.url} alt={article.title} />
+                                </div>
+                            </Reveal>
+                        )}
+
+                        <article
+                            className="aread-body"
+                            dangerouslySetInnerHTML={{ __html: article.body }}
+                        />
+
+                        <footer className="aread-foot">
+                            <a className="btn-secondary" href={ORIGIN + 'Articles/'}>
+                                <span className="btn-arrow" aria-hidden="true">←</span>
+                                All articles
+                            </a>
+                        </footer>
+                    </div>
                 ) : (
-                    <div className="article-detail-loading">
-                        <div className="loader"></div>
-                        <p>Loading article...</p>
+                    <div className="shell aread-notfound">
+                        <p className="kicker">Article not found</p>
+                        <h1 className="aread-notfound-title">
+                            We couldn&rsquo;t find that article.
+                        </h1>
+                        <p className="aread-notfound-text">
+                            It may have been removed, or the link is out of date.
+                            Browse the latest pieces instead.
+                        </p>
+                        <a className="btn-primary" href={ORIGIN + 'Articles/'}>
+                            See all articles
+                            <span className="btn-arrow" aria-hidden="true">→</span>
+                        </a>
                     </div>
                 )}
             </main>

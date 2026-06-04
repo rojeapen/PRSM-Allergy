@@ -1,262 +1,131 @@
-.event-tile {
-    padding: 3rem 1rem;
-    background: white;
-    transition: all 0.3s ease;
-    cursor: pointer;
+/* =============================================================
+   Event card — an upcoming event as a horizontal media row.
+   Photo + date + title + excerpt + meta, the whole row a link.
+   ============================================================= */
+
+.ecard {
+  position: relative;
+  display: grid;
+  grid-template-columns: clamp(160px, 26%, 280px) 1fr auto;
+  align-items: center;
+  gap: clamp(1.25rem, 0.8rem + 2vw, 2.5rem);
+  padding: clamp(1rem, 0.7rem + 1vw, 1.5rem);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  box-shadow: var(--shadow-rest);
+  border: 1px solid var(--hairline);
+  transition:
+    transform var(--dur-mid) var(--ease-out-quart),
+    box-shadow var(--dur-mid) var(--ease-out-quart),
+    border-color var(--dur-mid) var(--ease-out-quart);
+}
+.ecard:hover,
+.ecard:focus-visible {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: color-mix(in oklch, var(--research-teal) 35%, var(--hairline));
 }
 
-.event-tile.light {
-    background: linear-gradient(135deg, white 0%, #d7f0fe 100%);
+.ecard-media {
+  border-radius: var(--r-md);
+  overflow: hidden;
+  aspect-ratio: var(--event-image-ratio);
+  background: var(--surface-sunken);
+}
+.ecard-media img,
+.ecard-media--blank {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--dur-slow) var(--ease-out-quart);
+}
+/* Honor the saved crop zoom (matches the detail hero + dashboard cropper). */
+.ecard-media img { transform: scale(var(--crop-zoom, 1)); }
+.ecard-media--blank {
+  background:
+    radial-gradient(130% 130% at 25% 20%,
+      color-mix(in oklch, var(--research-teal) 16%, var(--surface)),
+      var(--surface-sunken));
+}
+.ecard:hover .ecard-media img { transform: scale(calc(var(--crop-zoom, 1) * 1.05)); }
+
+.ecard-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
 }
 
-.event-tile.white {
-    background: linear-gradient(135deg, white 0%, #d7f0fe 100%);
+.ecard-when {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+.ecard-when-marker {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  rotate: 45deg;
+  background: var(--research-teal);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--research-teal) 16%, transparent);
+}
+.ecard-when time {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--research-teal-deep);
+  font-variant-numeric: tabular-nums;
 }
 
-.event-tile:hover {
-    box-shadow: 0 20px 40px rgba(10, 108, 149, 0.08);
-    transform: translateY(-2px);
+.ecard-title {
+  font-size: var(--text-h3);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
-.event-tile-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: center;
-    position: relative;
-    cursor: pointer;
+.ecard-desc {
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--body);
+  max-width: 60ch;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.event-tile .event-image {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+.ecard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.ecard-dot { opacity: 0.6; }
+
+.ecard-go {
+  font-size: 1.4rem;
+  color: var(--research-teal-deep);
+  transition: transform var(--dur-mid) var(--ease-out-expo);
+}
+.ecard:hover .ecard-go,
+.ecard:focus-visible .ecard-go { transform: translateX(4px); }
+
+@media (max-width: 720px) {
+  .ecard {
+    grid-template-columns: 1fr;
+    gap: var(--space-16);
+  }
+  .ecard-go { display: none; }
 }
 
-.event-tile .event-image img {
-    width: 100%;
-    height: auto;
-    border-radius: 12px;
-    object-fit: cover;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease;
-}
-
-.event-tile:hover .event-image img {
-    transform: scale(1.02);
-}
-
-.event-tile .event-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.event-tile .event-meta {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.event-tile .event-date-badge,
-.event-tile .event-time {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #0A6C95;
-    background: #f0f7fb;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-}
-
-.event-tile .event-icon {
-    font-size: 1.1rem;
-}
-
-.event-tile .event-label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #999;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    margin: 0;
-}
-
-.event-tile .event-content h3 {
-    font-size: 2.25rem;
-    font-weight: 800;
-    color: #1a1a1a;
-    line-height: 1.2;
-    margin: 0;
-    letter-spacing: -0.5px;
-}
-
-.event-tile .event-description {
-    font-size: 1rem;
-    line-height: 1.7;
-    color: #666;
-    margin: 0;
-    font-weight: 400;
-}
-
-.event-tile .event-location {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #0A6C95;
-    padding: 0.75rem;
-    background: linear-gradient(135deg, #f8fafb 0%, #f0f4f8 100%);
-    border-radius: 8px;
-    border: 1px solid #e8ecf1;
-    width: fit-content;
-}
-
-.event-tile .event-stats {
-    display: flex;
-    gap: 2rem;
-    background: linear-gradient(135deg, #f8fafb 0%, #f0f4f8 100%);
-    padding: 1.5rem;
-    border-radius: 12px;
-    border: 1px solid #e8ecf1;
-    transition: all 0.3s ease;
-    align-items: flex-start;
-}
-
-.event-tile:hover .event-stats {
-    background: white;
-    border-color: #dae5ed;
-}
-
-.event-tile .stat {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.event-tile .stat-value {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #0A6C95;
-    letter-spacing: -0.5px;
-}
-
-.event-tile .stat-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #999;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-}
-
-.event-tile .event-capacity-bar {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    flex: 1;
-}
-
-.event-tile .capacity-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #333;
-}
-
-.event-tile .capacity-bar {
-    width: 100%;
-    height: 8px;
-    background: #e8ecf1;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.event-tile .capacity-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #0A6C95 0%, #0d8bb5 100%);
-    transition: width 0.5s ease;
-    box-shadow: 0 0 10px rgba(10, 108, 149, 0.3);
-}
-
-.event-tile .capacity-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #999;
-    letter-spacing: 0.05em;
-}
-
-@media only screen and (max-width: 768px) {
-    .event-tile {
-        padding: 2rem 1rem;
-    }
-
-    .event-tile-container {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    .event-tile .event-content h3 {
-        font-size: 1.5rem;
-    }
-
-    .event-tile .event-description {
-        font-size: 0.95rem;
-    }
-
-    .event-tile .event-stats {
-        gap: 1.5rem;
-        padding: 1rem;
-        flex-direction: column;
-    }
-
-    .event-tile .stat-value {
-        font-size: 1.5rem;
-    }
-
-    .event-tile .event-meta {
-        gap: 0.75rem;
-    }
-
-    .event-tile .event-date-badge,
-    .event-tile .event-time {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.8rem;
-    }
-}
-
-@media only screen and (max-width: 480px) {
-    .event-tile-container {
-        gap: 1.5rem;
-    }
-
-    .event-tile .event-content h3 {
-        font-size: 1.25rem;
-    }
-
-    .event-tile .event-stats {
-        gap: 1rem;
-        padding: 0.75rem;
-    }
-
-    .event-tile .stat-value {
-        font-size: 1.25rem;
-    }
-
-    .event-tile .event-meta {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .event-tile .event-date-badge,
-    .event-tile .event-time {
-        font-size: 0.8rem;
-        padding: 0.4rem 0.7rem;
-    }
+@media (prefers-reduced-motion: reduce) {
+  .ecard:hover,
+  .ecard:focus-visible { transform: none; }
+  /* keep the crop zoom, just drop the hover enlarge */
+  .ecard:hover .ecard-media img { transform: scale(var(--crop-zoom, 1)); }
 }

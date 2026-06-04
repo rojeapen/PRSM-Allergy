@@ -1,60 +1,138 @@
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
-    background: #f8fafb;
-}
+/* =============================================================
+   Events list — browse upcoming events, with past events kept
+   quieter below. Light system, consistent with the homepage
+   events agenda but image-forward for a dedicated page.
+   ============================================================= */
 
 .events-page {
-    background: linear-gradient(135deg, #f8fafb 0%, #f0f4f8 100%);
-    min-height: 100vh;
+  background: var(--bg);
 }
 
-.events-page .page-hero {
-    background: linear-gradient(135deg, #0A6C95 0%, #0d8bb5 100%);
-    color: white;
-    text-align: center;
-    padding: 4rem 1rem 2rem;
+/* ======================== Hero ======================== */
+.events-hero {
+  background: var(--bg);
+  padding-block: clamp(5rem, 3.5rem + 7vw, 9rem) var(--section-y);
+}
+.events-hero-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  max-width: 60ch;
+}
+.events-hero-title {
+  font-size: var(--text-display);
+  letter-spacing: var(--tracking-display);
+  line-height: 1.04;
+}
+.events-hero-lede {
+  max-width: 56ch;
 }
 
-.events-page .page-title {
-    font-size: 3.5rem;
-    font-weight: 800;
-    padding: 3rem 1rem 1rem;
-    text-align: center;
-    margin: 0;
-    background: linear-gradient(135deg, #0A6C95 0%, #0d8bb5 100%);
-    color: white;
-    letter-spacing: -0.5px;
+/* ======================== Section heads ======================== */
+.events-section-head {
+  margin-bottom: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+}
+.events-section-title {
+  font-size: var(--text-h2);
+  letter-spacing: -0.015em;
 }
 
-.events-page .page-subtitle {
-    font-size: 1.1rem;
-    color: white;
-    text-align: center;
-    padding: 0 1rem 2rem 1rem;
-    max-width: 600px;
-    margin: 0 auto;
-    line-height: 1.6;
+/* ======================== Upcoming list ======================== */
+.events-upcoming {
+  background: var(--bg);
+  padding-top: 0;
 }
-
 .events-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 0.7rem + 1vw, 1.5rem);
 }
 
-@media only screen and (max-width: 768px) {
-    .events-page .page-hero {
-        padding: 1rem 1rem 1.5rem;
-    }
+/* ======================== Empty state ======================== */
+.events-empty {
+  max-width: 52ch;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-16);
+  padding: clamp(2rem, 1.5rem + 2vw, 3rem);
+  border-radius: var(--r-lg);
+  background: var(--research-teal-wash);
+  border: 1px dashed color-mix(in oklch, var(--research-teal) 45%, var(--bg));
+}
+.events-empty-title {
+  font-size: var(--text-h3);
+  font-weight: 700;
+  color: var(--ink);
+}
+.events-empty-text {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--body);
+}
+.events-empty .btn-secondary { margin-top: var(--space-8); }
 
-    .events-page .page-title {
-        font-size: 2.5rem;
-    }
+/* ======================== Past events (quiet) ======================== */
+.events-past {
+  background: var(--surface);
+}
+.events-past-title {
+  color: var(--body);
+}
+.past-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.past-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 160px) 1fr auto auto;
+  align-items: baseline;
+  gap: clamp(1rem, 0.5rem + 1.5vw, 2rem);
+  padding: var(--space-16) var(--space-8);
+  border-top: 1px solid var(--hairline);
+  text-decoration: none;
+  color: var(--body);
+  transition: color var(--dur-mid) var(--ease-out-quart);
+}
+.past-list li:last-child .past-row { border-bottom: 1px solid var(--hairline); }
+.past-row:hover,
+.past-row:focus-visible { color: var(--research-teal-deep); }
 
-    .events-page .page-subtitle {
-        font-size: 1rem;
-    }
+.past-when {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.past-title {
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+.past-where {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.past-go {
+  color: var(--research-teal-deep);
+  opacity: 0;
+  transition: opacity var(--dur-mid) var(--ease-out-quart), transform var(--dur-mid) var(--ease-out-expo);
+}
+.past-row:hover .past-go,
+.past-row:focus-visible .past-go { opacity: 1; transform: translateX(3px); }
+
+@media (max-width: 640px) {
+  .past-row {
+    grid-template-columns: 1fr auto;
+    row-gap: var(--space-4);
+    column-gap: var(--space-12);
+  }
+  .past-when { grid-column: 1 / -1; }
+  .past-where { display: none; }
 }

@@ -1,96 +1,146 @@
-/* Primary Button */
+/* =====================================================================
+   Buttons — confident, purposeful. Filled = primary action,
+   outlined = secondary, ghost = navigation. Hovers fully resolve.
+
+   Variant classes are self-sufficient (work standalone), so the rest
+   of the app's pages that use `.btn-primary` / `.btn-secondary` /
+   `.btn-tertiary` directly keep working without a base `.btn` class.
+   ===================================================================== */
+
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-on-dark,
+.btn-tertiary,
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0.8rem 2.1rem;
+  border-radius: var(--r-lg);
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-mid) var(--ease-out-quart),
+    border-color var(--dur-mid) var(--ease-out-quart),
+    color var(--dur-mid) var(--ease-out-quart),
+    box-shadow var(--dur-mid) var(--ease-out-quart),
+    transform var(--dur-fast) var(--ease-out-quart);
+}
+
+.btn:active,
+.btn-primary:active,
+.btn-secondary:active,
+.btn-on-dark:active,
+.btn-tertiary:active,
+.btn-danger:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.btn-arrow { transition: transform var(--dur-mid) var(--ease-out-expo); }
+.btn:hover .btn-arrow,
+.btn-primary:hover .btn-arrow,
+.btn-secondary:hover .btn-arrow,
+.btn-on-dark:hover .btn-arrow,
+.btn-link:hover .btn-arrow { transform: translateX(4px); }
+
+/* Primary — the one filled action voice */
 .btn-primary {
-    font-size: 1rem;
-    padding: 0.75rem 2rem;
-    border-radius: 1rem;
-    border: 2px solid transparent;
-    cursor: pointer;
-    font-weight: 600;
-    background: #008080;
-    color: #fff;
-    transition: background 0.2s, color 0.2s, border 0.2s;
+  background: var(--research-teal-deep);
+  border-color: var(--research-teal-deep);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(0, 128, 128, 0.22);
 }
-
 .btn-primary:hover {
-    background: #006666;
-    border-color: #006666;
+  background: var(--research-teal-deeper);
+  border-color: var(--research-teal-deeper);
+  box-shadow: 0 10px 26px rgba(0, 128, 128, 0.3);
 }
 
-.btn-primary:active {
-    transform: scale(0.98);
-}
-
-/* Secondary Button */
+/* Secondary — outlined, on light surfaces */
 .btn-secondary {
-    font-size: 1rem;
-    padding: 0.75rem 2rem;
-    border-radius: 1rem;
-    border: 2px solid #cce7ea;
-    cursor: pointer;
-    font-weight: 600;
-    background: #fff;
-    color: #008080;
-    transition: background 0.2s, color 0.2s, border 0.2s;
+  background: var(--surface);
+  border-color: var(--border-mist);
+  color: var(--research-teal-deep);
 }
-
 .btn-secondary:hover {
-    background: #e6f7fa;
-    border-color: #008080;
+  background: color-mix(in oklch, var(--research-teal) 10%, var(--surface));
+  border-color: var(--research-teal-deep);
 }
 
-.btn-secondary:active {
-    transform: scale(0.98);
+/* Tertiary / On-dark — for navy or blue gradient surfaces */
+.btn-tertiary,
+.btn-on-dark {
+  background: var(--on-dark);
+  border-color: var(--on-dark);
+  color: var(--foundation-blue-deep);
 }
-
-/* Tertiary Button (for dark backgrounds) */
-.btn-tertiary {
-    font-size: 1rem;
-    padding: 0.75rem 2rem;
-    border-radius: 1rem;
-    border: 2px solid transparent;
-    cursor: pointer;
-    font-weight: 600;
-    background: white;
-    color: #008080;
-    transition: background 0.2s, color 0.2s, transform 0.2s;
-}
-
-.btn-tertiary:hover {
-    background: rgba(255, 255, 255, 0.9);
-    transform: translateY(-2px);
-}
-
-.btn-tertiary:active {
-    transform: translateY(0);
-}
-
-/* Link Button */
-.btn-link {
-    font-size: 1rem;
-    color: var(--primary-dark);
-    background: none;
-    border: none;
-    cursor: pointer;
-    text-decoration: underline;
-    padding: 0;
-}
-
-.btn-link:hover {
-    color: #006666;
-}
-
-.btn-link:active {
-    color: #004c4c;
+.btn-tertiary:hover,
+.btn-on-dark:hover {
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
 }
 
 .btn-danger {
-    font-size: 1rem;
-    padding: 0.75rem 2rem;
-    border-radius: 1rem;
-    border: 2px solid transparent;
-    cursor: pointer;
-    font-weight: 600;
-    background: #ff4d4f;
-    color: #fff;
-    transition: background 0.2s, color 0.2s, border 0.2s;
+  background: #d6453f;
+  border-color: #d6453f;
+  color: #fff;
 }
+.btn-danger:hover { background: #bb352f; border-color: #bb352f; }
+
+/* Ghost — navigation only. Animated underline, left-to-right. */
+.btn-ghost {
+  background: none;
+  border: none;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 500;
+  padding: var(--space-8) var(--space-4);
+  cursor: pointer;
+  position: relative;
+}
+.btn-ghost::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0%;
+  height: 2px;
+  background: var(--research-teal);
+  transition: width var(--dur-mid) var(--ease-out-expo);
+}
+.btn-ghost:hover::after,
+.btn-ghost[aria-current="page"]::after { width: 100%; }
+
+/* Quiet text link with trailing marker */
+.btn-link {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--research-teal-deep);
+  transition: color var(--dur-mid) var(--ease-out-quart);
+}
+.btn-link:hover { color: var(--research-teal-deeper); }
+
+.btn-block { width: 100%; }
+
+.btn:disabled,
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-on-dark:disabled,
+.btn-tertiary:disabled { opacity: 0.6; cursor: not-allowed; }

@@ -2,6 +2,16 @@ import { StrictMode, useEffect, useState, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
 import '../../index.css'
 import "./team.css"
+import {
+    Panel,
+    Field,
+    EmptyState,
+    SaveButton,
+    SectionRail,
+    DashboardSkeleton,
+    useDashboardRail,
+    type Section,
+} from '../shell'
 import Header from '../../components/header'
 import { isUserLoggedIn } from '../../api/auth'
 import { TeamMember, PRSM } from '../../constants'
@@ -13,6 +23,12 @@ createRoot(document.getElementById('root')!).render(
         <App />
     </StrictMode>,
 )
+
+const SECTIONS: Section[] = [
+    { id: 'subtitle', label: 'Subtitle' },
+    { id: 'story', label: 'Our story' },
+    { id: 'team', label: 'Team members' },
+]
 
 class TeamMemberEdit {
     name: string;
@@ -107,7 +123,7 @@ function PhotoCropper({ file, onConfirm, onCancel }: { file: File; onConfirm: (c
 
     return (
         <div className="photo-cropper">
-            <p className="photo-cropper-hint">Drag to reposition. Use slider to zoom.</p>
+            <p className="photo-cropper-hint">Drag to reposition. Use the slider to zoom.</p>
             <div
                 className="photo-cropper-viewport"
                 onPointerDown={handlePointerDown}
@@ -144,8 +160,8 @@ function PhotoCropper({ file, onConfirm, onCancel }: { file: File; onConfirm: (c
                 />
             </div>
             <div className="photo-cropper-actions">
-                <button className="btn-primary" type="button" onClick={handleConfirm}>Confirm Crop</button>
-                <button className="btn-danger" type="button" onClick={onCancel}>Cancel</button>
+                <button className="btn-primary" type="button" onClick={handleConfirm}>Confirm crop</button>
+                <button className="btn-quiet" type="button" onClick={onCancel}>Cancel</button>
             </div>
         </div>
     );
@@ -154,7 +170,6 @@ function PhotoCropper({ file, onConfirm, onCancel }: { file: File; onConfirm: (c
 function App() {
     const [prsm, setPrsm] = useState<PRSM | null>(null)
     const [teamMembers, setTeamMembers] = useState<TeamMemberEdit[]>([])
-    const [canSave, setCanSave] = useState(false)
     const [loadingSave, setLoadingSave] = useState(false)
     const [newMember, setNewMember] = useState<TeamMemberEdit>(new TeamMemberEdit({ name: '', description: '', role: '' }))
     const [editingIdx, setEditingIdx] = useState<number | null>(null)
@@ -167,6 +182,8 @@ function App() {
     const [ourStory, setOurStory] = useState('')
     const [canSaveStory, setCanSaveStory] = useState(false)
     const [loadingSaveStory, setLoadingSaveStory] = useState(false)
+
+    const { activeSection, goToSection } = useDashboardRail(SECTIONS, !!prsm)
 
     useEffect(() => {
         isUserLoggedIn((isLoggedIn) => { });
@@ -188,12 +205,14 @@ function App() {
         });
     }, [])
 
-    const handleAddMember = () => {
+    const handleAddMember = async () => {
         if (!newMember.name.trim() || !newMember.description.trim()) return;
-        setTeamMembers([...teamMembers, new TeamMemberEdit({ ...newMember })]);
+        const updated = [...teamMembers, new TeamMemberEdit({ ...newMember })];
+        setTeamMembers(updated);
         setNewMember(new TeamMemberEdit({ name: '', description: '', role: '' }));
         setNewPhotoRaw(null);
-        setCanSave(true);
+        // Persist immediately so a newly added member goes live without a separate save step.
+        await persistTeamMembers(updated);
     };
 
     const handleEditMember = (idx: number) => {
@@ -213,7 +232,7 @@ function App() {
         }
     };
 
-    const handleSaveMember = (idx: number) => {
+    const handleSaveMember = async (idx: number) => {
         if (!editingMember) return;
         const updated = [...teamMembers];
         updated[idx] = new TeamMemberEdit({ ...editingMember });
@@ -221,7 +240,8 @@ function App() {
         setEditingIdx(null);
         setEditingMember(null);
         setEditPhotoRaw(null);
-        setCanSave(true);
+        // Persist the edit immediately.
+        await persistTeamMembers(updated);
     };
 
     const handleCancelEditMember = () => {
@@ -230,13 +250,15 @@ function App() {
         setEditPhotoRaw(null);
     };
 
-    const handleDeleteMember = (idx: number) => {
-        setTeamMembers(teamMembers.filter((_, i) => i !== idx));
-        setCanSave(true);
+    const handleDeleteMember = async (idx: number) => {
+        const updated = teamMembers.filter((_, i) => i !== idx);
+        setTeamMembers(updated);
         if (editingIdx === idx) {
             setEditingIdx(null);
             setEditingMember(null);
         }
+        // Persist immediately so removing a member takes effect without a separate save step.
+        await persistTeamMembers(updated);
     };
 
     const handleSubtitleChange = (val: string) => {
@@ -269,18 +291,19 @@ function App() {
         setPrsm(updatedPrsm);
     };
 
-    const saveTeamMembers = async () => {
+    // Uploads any new photos, writes the full team list to Firebase, and syncs local
+    // state so a later edit doesn't re-upload the same file.
+    const persistTeamMembers = async (list: TeamMemberEdit[]) => {
         if (!prsm) return;
         setLoadingSave(true);
 
         const uploadedMembers: TeamMember[] = [];
-        for (const member of teamMembers) {
+        const syncedEdits: TeamMemberEdit[] = [];
+        for (const member of list) {
+            // Start from the member's existing photo. Only replace it when a new file
+            // was actually chosen, so editing without a new photo keeps the old one.
             let photo = new Photo({ url: member.photoUrl || "", id: member.photoId || "" });
 
-            if (member.photoUrl && member.photoFile) {
-                // If there's an existing photo URL and a new file, delete the old photo
-                await deletePhoto(photo);
-            }
             if (member.photoFile) {
                 const uploadedPhoto: Photo = await uploadPhoto(member.photoFile, `Team Member ${member.name}`);
                 photo = uploadedPhoto;
@@ -292,19 +315,37 @@ function App() {
                 role: member.role,
                 photo: new Photo({ url: photo.url, id: photo.id }),
             }));
+
+            syncedEdits.push(new TeamMemberEdit({
+                name: member.name,
+                description: member.description,
+                role: member.role,
+                photoUrl: photo.url,
+                photoId: photo.id,
+                id: member.id,
+            }));
         }
 
-        // Delete old team members that are no longer in the list
+        // Delete photos that are no longer referenced by any current member. Matching by
+        // photo identity (not name) means a renamed member who kept their photo, or any
+        // member edited without a new photo, never loses the existing image. This also
+        // cleans up the previous photo when one was genuinely replaced.
+        const survivingPhotoIds = new Set(uploadedMembers.map(m => m.photo.id).filter(Boolean));
+        const survivingPhotoUrls = new Set(uploadedMembers.map(m => m.photo.url).filter(Boolean));
         for (const oldMember of prsm.teamMembers) {
-            const stillExists = uploadedMembers.find(m => m.name === oldMember.name);
-            if (!stillExists) {
-                await deletePhoto(oldMember.photo);
+            const oldPhoto = oldMember.photo;
+            if (!oldPhoto || (!oldPhoto.id && !oldPhoto.url)) continue;
+            const stillUsed =
+                (oldPhoto.id && survivingPhotoIds.has(oldPhoto.id)) ||
+                (oldPhoto.url && survivingPhotoUrls.has(oldPhoto.url));
+            if (!stillUsed) {
+                await deletePhoto(oldPhoto);
             }
         }
 
         const updatedPrsm = PRSM.fromMap({ ...prsm.toMap(), teamMembers: uploadedMembers.map(m => m.toMap()) });
         await updatePRSM(updatedPrsm);
-        setCanSave(false);
+        setTeamMembers(syncedEdits);
         setLoadingSave(false);
         setPrsm(updatedPrsm);
     };
@@ -312,213 +353,253 @@ function App() {
     return (
         <>
             <Header isDashboardTeamPage={true} />
-            {prsm ? (
-                <>
-                    <section className={`dashboard-section light`}>
-                        <div className='section-title'>
-                            <h1>About Us Page</h1>
-                            <p>Edit the subtitle and Our Story section shown on the About Us page.</p>
-                        </div>
-                        <div className='team-dashboard-content'>
-                            <div className='team-form-group' style={{ width: '100%', maxWidth: 600 }}>
-                                <label>Subtitle:</label>
-                                <textarea
-                                    className='input-light'
-                                    value={subtitle}
-                                    onChange={e => handleSubtitleChange(e.target.value)}
-                                />
-                                {canSaveSubtitle && !loadingSaveSubtitle && (
-                                    <button className='btn-primary' onClick={saveSubtitle}>Save</button>
-                                )}
-                                {loadingSaveSubtitle && <div className='loader'></div>}
-                            </div>
-                            <div className='team-form-group' style={{ width: '100%', maxWidth: 600 }}>
-                                <label>Our Story:</label>
-                                <textarea
-                                    className='input-light'
-                                    style={{ minHeight: 180 }}
-                                    placeholder='Tell the story of PRSM Allergy Foundation...'
-                                    value={ourStory}
-                                    onChange={e => handleStoryChange(e.target.value)}
-                                />
-                                {canSaveStory && !loadingSaveStory && (
-                                    <button className='btn-primary' onClick={saveStory}>Save</button>
-                                )}
-                                {loadingSaveStory && <div className='loader'></div>}
-                            </div>
-                        </div>
-                    </section>
-                    <section className={`dashboard-section light`}>
-                        <div className='section-title'>
-                            <h1>Team Members</h1>
-                            <p>Manage team members shown on the main website.</p>
-                        </div>
-                        <div className='team-dashboard-content'>
-                            <div className='team-dashboard-list'>
-                                {teamMembers.length === 0 && <div style={{ textAlign: 'center' }}>No team members yet.</div>}
-                                {teamMembers.map((member, idx) => (
-                                    <div className='team-dashboard-item' key={idx}>
-                                        {editingIdx === idx ? (
-                                            <>
-                                                <div className='team-form-group'>
-                                                    <label>Name:</label>
-                                                    <input
-                                                        type='text'
-                                                        className='input-light'
-                                                        value={editingMember?.name || ''}
-                                                        onChange={e => handleEditMemberField('name', e.target.value)}
-                                                    />
-                                                </div>
-                                                <div className='team-form-group'>
-                                                    <label>Role:</label>
-                                                    <input
-                                                        type='text'
-                                                        className='input-light'
-                                                        value={editingMember?.role || ''}
-                                                        onChange={e => handleEditMemberField('role', e.target.value)}
-                                                    />
-                                                </div>
-                                                <div className='team-form-group'>
-                                                    <label>Description:</label>
-                                                    <textarea
-                                                        className='input-light'
-                                                        value={editingMember?.description || ''}
-                                                        onChange={e => handleEditMemberField('description', e.target.value)}
-                                                    />
-                                                </div>
-                                                <div className='team-form-group'>
-                                                    <label>Photo:</label>
-                                                    {editPhotoRaw ? (
-                                                        <PhotoCropper
-                                                            file={editPhotoRaw}
-                                                            onConfirm={(cropped) => {
-                                                                handleEditMemberPhoto(cropped);
-                                                                setEditPhotoRaw(null);
-                                                            }}
-                                                            onCancel={() => setEditPhotoRaw(null)}
-                                                        />
-                                                    ) : (
-                                                        <>
-                                                            <input
-                                                                type='file'
-                                                                className='input-light'
-                                                                accept='image/*'
-                                                                onChange={(e) => {
-                                                                    if (e.target.files && e.target.files[0]) {
-                                                                        setEditPhotoRaw(e.target.files[0]);
-                                                                    }
-                                                                }}
+            <main className="dash">
+                <div className="dash-head">
+                    <p className="kicker">Site content</p>
+                    <h1>About Us page</h1>
+                    <p className="dash-head-sub">
+                        The subtitle, the Our Story narrative, and the team members shown on
+                        the public About Us page. Each section saves on its own.
+                    </p>
+                </div>
+
+                {!prsm ? (
+                    <DashboardSkeleton sections={SECTIONS} panels={3} />
+                ) : (
+                    <>
+                        <SectionRail
+                            sections={SECTIONS}
+                            activeSection={activeSection}
+                            goToSection={goToSection}
+                        />
+
+                        <div className="dash-main">
+                            {/* ---- Subtitle ---- */}
+                            <Panel
+                                id="subtitle"
+                                title="Page subtitle"
+                                desc="The supporting line beneath the About Us heading."
+                                action={
+                                    <SaveButton
+                                        dirty={canSaveSubtitle}
+                                        loading={loadingSaveSubtitle}
+                                        onClick={saveSubtitle}
+                                        label="Save subtitle"
+                                    />
+                                }
+                            >
+                                <Field label="Subtitle" htmlFor="team-subtitle">
+                                    <textarea
+                                        id="team-subtitle"
+                                        className="field"
+                                        value={subtitle}
+                                        onChange={e => handleSubtitleChange(e.target.value)}
+                                    />
+                                </Field>
+                            </Panel>
+
+                            {/* ---- Our story ---- */}
+                            <Panel
+                                id="story"
+                                title="Our story"
+                                desc="The longer narrative about the foundation, in your own words."
+                                action={
+                                    <SaveButton
+                                        dirty={canSaveStory}
+                                        loading={loadingSaveStory}
+                                        onClick={saveStory}
+                                        label="Save story"
+                                    />
+                                }
+                            >
+                                <Field label="Story" htmlFor="our-story">
+                                    <textarea
+                                        id="our-story"
+                                        className="field field-tall"
+                                        placeholder="Tell the story of PRSM Allergy Foundation."
+                                        value={ourStory}
+                                        onChange={e => handleStoryChange(e.target.value)}
+                                    />
+                                </Field>
+                            </Panel>
+
+                            {/* ---- Team members ---- */}
+                            <Panel
+                                id="team"
+                                title="Team members"
+                                desc="People shown on the About Us page. Photos are cropped to a circle. Changes save immediately."
+                                action={
+                                    loadingSave ? (
+                                        <span className="saving-inline">
+                                            <span className="spinner-sm is-dark" aria-hidden="true" />
+                                            Saving…
+                                        </span>
+                                    ) : undefined
+                                }
+                            >
+                                {teamMembers.length === 0 ? (
+                                    <EmptyState>
+                                        No team members yet. Add your first one below.
+                                    </EmptyState>
+                                ) : (
+                                    <div className="member-list">
+                                        {teamMembers.map((member, idx) =>
+                                            editingIdx === idx ? (
+                                                <div className="member is-editing" key={idx}>
+                                                    <div className="member-edit-fields">
+                                                        <div className="member-add-grid">
+                                                            <Field label="Name">
+                                                                <input
+                                                                    type="text"
+                                                                    className="field"
+                                                                    value={editingMember?.name || ''}
+                                                                    onChange={e => handleEditMemberField('name', e.target.value)}
+                                                                />
+                                                            </Field>
+                                                            <Field label="Role">
+                                                                <input
+                                                                    type="text"
+                                                                    className="field"
+                                                                    value={editingMember?.role || ''}
+                                                                    onChange={e => handleEditMemberField('role', e.target.value)}
+                                                                />
+                                                            </Field>
+                                                        </div>
+                                                        <Field label="Description">
+                                                            <textarea
+                                                                className="field"
+                                                                value={editingMember?.description || ''}
+                                                                onChange={e => handleEditMemberField('description', e.target.value)}
                                                             />
-                                                            {editingMember?.photoFile && (
-                                                                <img src={URL.createObjectURL(editingMember.photoFile)} alt="Preview" className='team-dashboard-thumbnail' />
+                                                        </Field>
+                                                        <Field label="Photo">
+                                                            {editPhotoRaw ? (
+                                                                <PhotoCropper
+                                                                    file={editPhotoRaw}
+                                                                    onConfirm={(cropped) => {
+                                                                        handleEditMemberPhoto(cropped);
+                                                                        setEditPhotoRaw(null);
+                                                                    }}
+                                                                    onCancel={() => setEditPhotoRaw(null)}
+                                                                />
+                                                            ) : (
+                                                                <div className="member-photo-field">
+                                                                    <input
+                                                                        type="file"
+                                                                        className="field-file"
+                                                                        accept="image/*"
+                                                                        onChange={(e) => {
+                                                                            if (e.target.files && e.target.files[0]) {
+                                                                                setEditPhotoRaw(e.target.files[0]);
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    {editingMember?.photoFile && (
+                                                                        <img src={URL.createObjectURL(editingMember.photoFile)} alt="Preview" className="member-thumb" />
+                                                                    )}
+                                                                    {editingMember?.photoUrl && !editingMember?.photoFile && (
+                                                                        <img src={editingMember.photoUrl} alt="Preview" className="member-thumb" />
+                                                                    )}
+                                                                </div>
                                                             )}
-                                                            {editingMember?.photoUrl && !editingMember?.photoFile && (
-                                                                <img src={editingMember.photoUrl} alt="Preview" className='team-dashboard-thumbnail' />
-                                                            )}
-                                                        </>
-                                                    )}
-                                                </div>
-                                                <div className='team-dashboard-actions'>
-                                                    <button className='btn-primary' onClick={() => handleSaveMember(idx)}>Save</button>
-                                                    <button className='btn-danger' onClick={handleCancelEditMember}>Cancel</button>
-                                                </div>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className='team-dashboard-item-preview'>
-                                                    <img
-                                                        src={member.photoFile != undefined ? URL.createObjectURL(member.photoFile) : member.photoUrl ? member.photoUrl : ''}
-                                                        alt={member.name}
-                                                        className='team-dashboard-thumbnail'
-                                                    />
-                                                    <div className='team-dashboard-item-info'>
-                                                        <h4>{member.name}</h4>
-                                                        {member.role && <p><strong>{member.role}</strong></p>}
-                                                        <p>{member.description}</p>
+                                                        </Field>
+                                                    </div>
+                                                    <div className="row-actions">
+                                                        <button className="btn-quiet" onClick={() => handleSaveMember(idx)}>Save</button>
+                                                        <button className="btn-quiet" onClick={handleCancelEditMember}>Cancel</button>
                                                     </div>
                                                 </div>
-                                                <div className='team-dashboard-actions'>
-                                                    <button className='btn-primary' onClick={() => handleEditMember(idx)}>Edit</button>
-                                                    <button className='btn-danger' onClick={() => handleDeleteMember(idx)}>Delete</button>
+                                            ) : (
+                                                <div className="member" key={idx}>
+                                                    <div className="member-main">
+                                                        <img
+                                                            src={member.photoFile != undefined ? URL.createObjectURL(member.photoFile) : member.photoUrl ? member.photoUrl : ''}
+                                                            alt={member.name}
+                                                            className="member-photo"
+                                                        />
+                                                        <div className="member-info">
+                                                            <span className="row-title">{member.name}</span>
+                                                            {member.role && <span className="member-role">{member.role}</span>}
+                                                            <span className="member-desc">{member.description}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="row-actions">
+                                                        <button className="btn-quiet" onClick={() => handleEditMember(idx)}>Edit</button>
+                                                        <button className="btn-quiet is-danger" onClick={() => handleDeleteMember(idx)}>Delete</button>
+                                                    </div>
                                                 </div>
-                                            </>
+                                            )
                                         )}
                                     </div>
-                                ))}
-                            </div>
+                                )}
 
-                            <div className='team-dashboard-add'>
-                                <h3 style={{ margin: '0 0 1rem 0' }}>Add New Team Member</h3>
-                                <div className='team-form-group'>
-                                    <label>Name:</label>
-                                    <input
-                                        type='text'
-                                        className='input-light'
-                                        placeholder='Team member name'
-                                        value={newMember.name}
-                                        onChange={e => setNewMember(new TeamMemberEdit({ ...newMember, name: e.target.value }))}
-                                    />
-                                </div>
-                                <div className='team-form-group'>
-                                    <label>Role:</label>
-                                    <input
-                                        type='text'
-                                        className='input-light'
-                                        placeholder='e.g. President, Treasurer'
-                                        value={newMember.role}
-                                        onChange={e => setNewMember(new TeamMemberEdit({ ...newMember, role: e.target.value }))}
-                                    />
-                                </div>
-                                <div className='team-form-group'>
-                                    <label>Description:</label>
-                                    <textarea
-                                        className='input-light'
-                                        placeholder='Description'
-                                        value={newMember.description}
-                                        onChange={e => setNewMember(new TeamMemberEdit({ ...newMember, description: e.target.value }))}
-                                    />
-                                </div>
-                                <div className='team-form-group'>
-                                    <label>Photo:</label>
-                                    {newPhotoRaw ? (
-                                        <PhotoCropper
-                                            file={newPhotoRaw}
-                                            onConfirm={(cropped) => {
-                                                setNewMember(new TeamMemberEdit({ ...newMember, photoFile: cropped }));
-                                                setNewPhotoRaw(null);
-                                            }}
-                                            onCancel={() => setNewPhotoRaw(null)}
-                                        />
-                                    ) : (
-                                        <>
+                                <div className="member-add">
+                                    <h3 className="member-add-title">Add team member</h3>
+                                    <div className="member-add-grid">
+                                        <Field label="Name">
                                             <input
-                                                type='file'
-                                                className='input-light'
-                                                accept='image/*'
-                                                onChange={(e) => {
-                                                    if (e.target.files && e.target.files[0]) {
-                                                        setNewPhotoRaw(e.target.files[0]);
-                                                    }
-                                                }}
+                                                type="text"
+                                                className="field"
+                                                placeholder="Full name"
+                                                value={newMember.name}
+                                                onChange={e => setNewMember(new TeamMemberEdit({ ...newMember, name: e.target.value }))}
                                             />
-                                            {newMember.photoFile && (
-                                                <img src={URL.createObjectURL(newMember.photoFile)} alt="Preview" className='team-dashboard-thumbnail' />
-                                            )}
-                                        </>
-                                    )}
+                                        </Field>
+                                        <Field label="Role">
+                                            <input
+                                                type="text"
+                                                className="field"
+                                                placeholder="e.g. President"
+                                                value={newMember.role}
+                                                onChange={e => setNewMember(new TeamMemberEdit({ ...newMember, role: e.target.value }))}
+                                            />
+                                        </Field>
+                                    </div>
+                                    <Field label="Description">
+                                        <textarea
+                                            className="field"
+                                            placeholder="A short bio"
+                                            value={newMember.description}
+                                            onChange={e => setNewMember(new TeamMemberEdit({ ...newMember, description: e.target.value }))}
+                                        />
+                                    </Field>
+                                    <Field label="Photo">
+                                        {newPhotoRaw ? (
+                                            <PhotoCropper
+                                                file={newPhotoRaw}
+                                                onConfirm={(cropped) => {
+                                                    setNewMember(new TeamMemberEdit({ ...newMember, photoFile: cropped }));
+                                                    setNewPhotoRaw(null);
+                                                }}
+                                                onCancel={() => setNewPhotoRaw(null)}
+                                            />
+                                        ) : (
+                                            <div className="member-photo-field">
+                                                <input
+                                                    type="file"
+                                                    className="field-file"
+                                                    accept="image/*"
+                                                    onChange={(e) => {
+                                                        if (e.target.files && e.target.files[0]) {
+                                                            setNewPhotoRaw(e.target.files[0]);
+                                                        }
+                                                    }}
+                                                />
+                                                {newMember.photoFile && (
+                                                    <img src={URL.createObjectURL(newMember.photoFile)} alt="Preview" className="member-thumb" />
+                                                )}
+                                            </div>
+                                        )}
+                                    </Field>
+                                    <div>
+                                        <button className="btn-quiet" onClick={handleAddMember}>Add member</button>
+                                    </div>
                                 </div>
-                                <button className='btn-primary' onClick={handleAddMember}>Add Team Member</button>
-                            </div>
-
-                            {canSave && !loadingSave &&
-                                <button className='btn-primary' onClick={saveTeamMembers}>Save Changes</button>}
-                            {loadingSave && <div className='loader'></div>}
+                            </Panel>
                         </div>
-                    </section>
-                </>
-            ) : (
-                <div className='loader-container'><div className='loader'></div></div>
-            )}
+                    </>
+                )}
+            </main>
         </>
     )
 }

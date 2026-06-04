@@ -1,33 +1,66 @@
-import type { PRSM } from '../constants';
-import './footer.css';
+import { ORIGIN, DEFAULT_COPY, type PRSM } from "../constants";
+import "./footer.css";
+import Logo from "../assets/favicon.svg";
 
 function Footer({ prsm }: { prsm: PRSM }) {
-    return (
-        <footer id="footer" className="footer">
-            <div className="footer-container">
-                <div className="footer-content">
-                    <div className="footer-section">
-                        <p className="footer-title">© PRSM Allergy Foundation.</p>
-                        <p className="footer-text">
-                            PRSM Allergy Foundation is an unincorporated nonprofit association. 100% of donations go directly to the external allergy research organizations we support.
-                        </p>
-                    </div>
+  const year = new Date().getFullYear();
+  const hasSocial = prsm.socialMediaLinks.length > 0;
 
-                    <div className="footer-section">
-                        <h4 className="footer-heading">Follow Us</h4>
-                        <div className="social-links">
-                            {prsm.socialMediaLinks.map((link) => (
-                                <a key={link.platform} href={link.url} aria-label={`Follow us on ${link.platform}`}>
-                                    {link.platform}
-                                </a>
-                            ))}
+  const links = [
+    { label: "Fundraisers", href: ORIGIN + "Fundraisers/" },
+    { label: "Events", href: ORIGIN + "Events/" },
+    { label: "Articles", href: ORIGIN + "Articles/" },
+    { label: "About Us", href: ORIGIN + "Team/" },
+  ];
 
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </footer>
-    );
+  return (
+    <footer id="footer" className="footer">
+      <div className="shell footer-top">
+        <div className="footer-brand">
+          <p className="footer-wordmark">
+            <img src={Logo} alt="" className="header-logo" />
+            PRSM Allergy Foundation
+          </p>
+          <p className="footer-mission">
+            {prsm.footerMission || DEFAULT_COPY.footerMission}
+          </p>
+        </div>
+
+        <nav className="footer-col" aria-label="Footer">
+          <h2 className="footer-heading">Explore</h2>
+          {links.map((l) => (
+            <a key={l.label} href={l.href} className="footer-link">
+              {l.label}
+            </a>
+          ))}
+        </nav>
+
+        {hasSocial && (
+          <div className="footer-col">
+            <h2 className="footer-heading">Follow us</h2>
+            {prsm.socialMediaLinks.map((link) => (
+              <a
+                key={link.platform}
+                href={link.url}
+                className="footer-link"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {link.platform}
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="shell footer-base">
+        <p className="footer-copy">© {year} PRSM Allergy Foundation</p>
+        <p className="footer-fine">
+          {prsm.footerFine || DEFAULT_COPY.footerFine}
+        </p>
+      </div>
+    </footer>
+  );
 }
 
 export default Footer;

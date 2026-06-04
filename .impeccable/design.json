@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-01T00:00:00Z",
+  "title": "Design System: PRSM Allergy Foundation",
+  "extensions": {
+    "colorMeta": {
+      "research-teal": {
+        "role": "primary",
+        "displayName": "Research Teal",
+        "canonical": "#01d1d1",
+        "tonalRamp": ["#012b2b", "#024d4d", "#006666", "#007a7a", "#009090", "#01b0b0", "#01d1d1", "#7de8e8"]
+      },
+      "research-teal-deep": {
+        "role": "primary",
+        "displayName": "Research Teal Deep",
+        "canonical": "#008080",
+        "tonalRamp": ["#002020", "#003d3d", "#005555", "#008080", "#009898", "#00b5b5", "#3dd0d0", "#a8ecec"]
+      },
+      "research-teal-wash": {
+        "role": "primary",
+        "displayName": "Research Teal Wash",
+        "canonical": "#01d1d114",
+        "tonalRamp": ["#002828", "#004040", "#006060", "#008888", "#01a8a8", "#01c4c4", "#01d1d1", "#e0fafa"]
+      },
+      "foundation-blue": {
+        "role": "secondary",
+        "displayName": "Foundation Blue",
+        "canonical": "#0A6C95",
+        "tonalRamp": ["#051a25", "#073548", "#0a4f6d", "#0A6C95", "#0d88be", "#2ba0d0", "#74c0e0", "#c0e4f4"]
+      },
+      "foundation-blue-deep": {
+        "role": "secondary",
+        "displayName": "Foundation Blue Deep",
+        "canonical": "#054d6f",
+        "tonalRamp": ["#021520", "#044060", "#054d6f", "#0a6490", "#1a80b0", "#4aa0cc", "#90c8e8", "#d0ecf8"]
+      },
+      "anchor-navy": {
+        "role": "neutral",
+        "displayName": "Anchor Navy",
+        "canonical": "#1a2e3b",
+        "tonalRamp": ["#0a1520", "#111e29", "#1a2e3b", "#24404f", "#2e5264", "#456879", "#6e8c9b", "#b4c8d2"]
+      },
+      "pale-horizon": {
+        "role": "neutral",
+        "displayName": "Pale Horizon",
+        "canonical": "#f6fbfd",
+        "tonalRamp": ["#1a2e3b", "#2d4a5a", "#4a6980", "#7090a8", "#a0b8c8", "#c8dae4", "#e8f3f8", "#f6fbfd"]
+      },
+      "surface-off-white": {
+        "role": "neutral",
+        "displayName": "Surface Off-White",
+        "canonical": "#f9f9f9",
+        "tonalRamp": ["#1a1a1a", "#333333", "#555555", "#777777", "#999999", "#bbbbbb", "#dddddd", "#f9f9f9"]
+      },
+      "body-slate": {
+        "role": "neutral",
+        "displayName": "Body Slate",
+        "canonical": "#425466",
+        "tonalRamp": ["#151c22", "#1e2b36", "#2d3f4e", "#425466", "#5a7088", "#7e97aa", "#a8bfcc", "#d4e3eb"]
+      },
+      "border-mist": {
+        "role": "neutral",
+        "displayName": "Border Mist",
+        "canonical": "#dae5ed",
+        "tonalRamp": ["#1a2e3b", "#2d4858", "#4a6880", "#7090aa", "#a0b8cc", "#c8dae6", "#dae5ed", "#f0f6fa"]
+      },
+      "error-rose": {
+        "role": "neutral",
+        "displayName": "Error Rose",
+        "canonical": "#ffb3b3",
+        "tonalRamp": ["#3d0000", "#6e0000", "#9e0000", "#cc2222", "#ee5555", "#ff8888", "#ffb3b3", "#ffe5e5"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headlines only. One per page; the primary landing statement." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles. The structural anchors of each page section." },
+      "title": { "displayName": "Title", "purpose": "Sub-section headings and fundraiser names. Subordinate to Headline." },
+      "body": { "displayName": "Body", "purpose": "All primary content. Max line length 65-75ch." },
+      "label": { "displayName": "Label", "purpose": "Event dates, category tags, stat labels, navigation. Spaced tracking marks these as metadata." }
+    },
+    "shadows": [
+      {
+        "name": "ambient-resting",
+        "value": "0 2px 8px rgba(24, 49, 79, 0.08)",
+        "purpose": "Cards and containers at rest. Barely perceptible; the perception of surface."
+      },
+      {
+        "name": "ambient-hover",
+        "value": "0 8px 16px rgba(10, 108, 149, 0.15)",
+        "purpose": "Card hover lift. Extended reach, tinted toward primary blue."
+      },
+      {
+        "name": "hero-frame",
+        "value": "0 8px 32px rgba(24, 49, 79, 0.07)",
+        "purpose": "Large image containers (hero, gallery). Separates from Pale Horizon background."
+      },
+      {
+        "name": "focus-ring",
+        "value": "0 0 0 3px rgba(0, 128, 128, 0.1)",
+        "purpose": "Input and button focus state. Soft teal glow; replaces browser default outline."
+      },
+      {
+        "name": "mobile-menu",
+        "value": "0 2px 4px rgba(0, 0, 0, 0.1)",
+        "purpose": "Mobile nav dropdown only. The one neutral shadow in the system; acceptable here because the menu overlaps varied backgrounds."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Default easing for state transitions: hover, focus, color changes."
+      },
+      {
+        "name": "ease-exit",
+        "value": "cubic-bezier(0.4, 0, 1, 1)",
+        "purpose": "Elements leaving the screen or collapsing."
+      },
+      {
+        "name": "duration-fast",
+        "value": "0.2s",
+        "purpose": "Button color/border transitions, quick state changes."
+      },
+      {
+        "name": "duration-standard",
+        "value": "0.3s",
+        "purpose": "Card hover lift, underline expansion, menu transitions."
+      }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "480px" },
+      { "name": "tablet", "value": "768px" },
+      { "name": "desktop", "value": "900px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Primary CTA for donation and key conversion actions.",
+      "html": "<button class=\"ds-btn-primary\">Donate Now</button>",
+      "css": ".ds-btn-primary { background: #008080; color: #ffffff; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 1rem; font-weight: 600; padding: 12px 40px; border-radius: 16px; border: 2px solid #008080; cursor: pointer; transition: background 0.2s cubic-bezier(0.4,0,0.2,1), border-color 0.2s cubic-bezier(0.4,0,0.2,1); } .ds-btn-primary:hover { background: #006666; border-color: #006666; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(0,128,128,0.3); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Secondary action; used alongside a primary button or as a standalone softer CTA.",
+      "html": "<button class=\"ds-btn-secondary\">Learn More</button>",
+      "css": ".ds-btn-secondary { background: #ffffff; color: #008080; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 1rem; font-weight: 600; padding: 10px 38px; border-radius: 16px; border: 2px solid #dae5ed; cursor: pointer; transition: background 0.2s cubic-bezier(0.4,0,0.2,1), border-color 0.2s cubic-bezier(0.4,0,0.2,1); } .ds-btn-secondary:hover { background: #e6f7f7; border-color: #008080; } .ds-btn-secondary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(0,128,128,0.2); }"
+    },
+    {
+      "name": "Ghost Nav Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Navigation links in the sticky header. Underline animates left-to-right on hover.",
+      "html": "<button class=\"ds-btn-ghost\">Events</button>",
+      "css": ".ds-btn-ghost { background: none; border: none; color: #1a2e3b; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 1rem; font-weight: 500; padding: 8px 12px; cursor: pointer; position: relative; } .ds-btn-ghost::after { content: ''; position: absolute; left: 0; bottom: 0; width: 0%; height: 2px; background: #01d1d1; transition: width 0.3s cubic-bezier(0.4,0,0.2,1); } .ds-btn-ghost:hover::after { width: 100%; } .ds-btn-ghost:focus-visible { outline: 2px solid #008080; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": null,
+      "description": "Form text field. Teal focus ring; no hard outline on focus.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Your email address\" />",
+      "css": ".ds-input { font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; font-size: 1rem; padding: 12px; border: 1px solid #e0e0e0; border-radius: 4px; background: #ffffff; color: #1a2e3b; width: 100%; box-sizing: border-box; transition: border-color 0.3s ease, box-shadow 0.3s ease; } .ds-input::placeholder { color: #999999; } .ds-input:focus { outline: none; border-color: #008080; box-shadow: 0 0 0 3px rgba(0,128,128,0.1); }"
+    },
+    {
+      "name": "Event Card",
+      "kind": "card",
+      "refersTo": null,
+      "description": "Interactive event tile. Full Foundation Blue fill on hover; text inverts to white. The Conviction Hover pattern.",
+      "html": "<div class=\"ds-card-event\"><span class=\"ds-card-event-date\">SAT, JUN 7</span><h3 class=\"ds-card-event-title\">Annual Allergy Awareness Walk</h3><span class=\"ds-card-event-location\">West Lafayette, IN</span></div>",
+      "css": ".ds-card-event { padding: 24px; background: #f9f9f9; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; position: relative; overflow: hidden; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s cubic-bezier(0.4,0,0.2,1); } .ds-card-event::before { content: ''; position: absolute; top: 0; left: 0; width: 0; height: 100%; background: #0A6C95; border-radius: 8px; z-index: 0; transition: width 0.3s cubic-bezier(0.4,0,0.2,1); } .ds-card-event:hover::before { width: 100%; } .ds-card-event:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(10,108,149,0.15); } .ds-card-event-date, .ds-card-event-title, .ds-card-event-location { position: relative; z-index: 1; transition: color 0.2s ease; } .ds-card-event-date { font-size: 0.85rem; font-weight: 600; color: #0A6C95; letter-spacing: 0.05em; font-family: 'Inter', sans-serif; } .ds-card-event-title { font-size: 1.2rem; font-weight: 700; color: #1a2e3b; margin: 0; font-family: 'Inter', sans-serif; } .ds-card-event-location { font-size: 0.95rem; color: #666666; font-family: 'Inter', sans-serif; } .ds-card-event:hover .ds-card-event-date { color: rgba(255,255,255,0.9); } .ds-card-event:hover .ds-card-event-title { color: #ffffff; } .ds-card-event:hover .ds-card-event-location { color: rgba(255,255,255,0.85); }"
+    },
+    {
+      "name": "Newsletter Section",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Signature dark-gradient band. Foundation Blue gradient; white text. The one moment the palette inverts.",
+      "html": "<section class=\"ds-newsletter\"><div class=\"ds-newsletter-inner\"><h3 class=\"ds-newsletter-heading\">Stay Informed</h3><p class=\"ds-newsletter-body\">Get updates on research, events, and ways to support the community.</p><div class=\"ds-newsletter-form\"><input class=\"ds-newsletter-input\" type=\"email\" placeholder=\"Enter your email\" /><button class=\"ds-newsletter-btn\">Subscribe</button></div></div></section>",
+      "css": ".ds-newsletter { background: linear-gradient(135deg, #0A6C95 0%, #054d6f 100%); padding: 48px 16px; } .ds-newsletter-inner { max-width: 600px; margin: 0 auto; text-align: center; } .ds-newsletter-heading { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 700; color: #ffffff; margin: 0 0 12px; } .ds-newsletter-body { font-family: 'Inter', sans-serif; font-size: 1rem; color: rgba(255,255,255,0.9); line-height: 1.6; margin: 0 0 32px; } .ds-newsletter-form { display: flex; flex-direction: column; gap: 12px; } .ds-newsletter-input { padding: 12px; font-size: 1rem; font-family: 'Inter', sans-serif; border: none; border-radius: 4px; background: #ffffff; color: #333333; } .ds-newsletter-input:focus { outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,0.3); } .ds-newsletter-btn { padding: 12px 40px; font-size: 1rem; font-family: 'Inter', sans-serif; font-weight: 600; background: #ffffff; color: #0A6C95; border: none; border-radius: 16px; cursor: pointer; transition: background 0.2s ease, color 0.2s ease; } .ds-newsletter-btn:hover { background: rgba(255,255,255,0.9); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Hopeful Cartographer",
+    "overview": "PRSM maps the path from laboratory research to tangible community impact: donors, community members, and caregivers converging at a shared point of purpose. The design system embodies cartographic precision. Every element is deliberate; nothing decorates without earning its place. The palette is neither clinical nor sentimental; it is clear, forward-moving, and grounded in evidence.\n\nThe system is light-mode because the experience belongs to someone browsing at home, in warm ambient light, deciding whether to trust an organization with their donation. Dark surfaces would feel institutional. Light surfaces convey openness. Research Teal and Foundation Blue are the map markers: vivid, specific, trustworthy. The dark Anchor Navy footer provides the terminus.\n\nWhat this system explicitly rejects: the generic charity template (three-column identical icon-card grids, bold 'DONATE NOW' hero banners), the hero-metric template, and cold clinical aesthetics.",
+    "keyCharacteristics": [
+      "Evidence-based optimism: color signals precision and progress, not sentiment",
+      "Two-voice color hierarchy: Research Teal for accents and state; Foundation Blue for depth",
+      "Unhurried typography: generous line-heights, clear weight contrast, never compressed",
+      "Conviction on hover: interactive surfaces commit fully, not halfway",
+      "Tonal ambient elevation: shadows carry brand color, surfaces are flat at rest"
+    ],
+    "rules": [
+      {
+        "name": "The Two-Voice Rule",
+        "body": "Research Teal and Foundation Blue are the only colors that carry brand identity. All other surfaces are neutrals. A button can be teal. A card cannot be blue just because it is important.",
+        "section": "colors"
+      },
+      {
+        "name": "The Pale Horizon Rule",
+        "body": "The page background is never pure white. Use Pale Horizon (#f6fbfd) for any content surface at rest. Pure white is reserved for elevated containers: cards and form inputs.",
+        "section": "colors"
+      },
+      {
+        "name": "The Single Family Rule",
+        "body": "This system uses one typeface. Hierarchy comes entirely from scale and weight contrast, never from pairing. If hierarchy feels flat, increase weight or scale contrast within Inter.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tonal Shadow Rule",
+        "body": "All shadows use rgba-tinted brand navy (rgba(24, 49, 79, 0.X)) or brand blue (rgba(10, 108, 149, 0.X)). Neutral gray shadows are prohibited; they read as disconnected from the palette.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Components have no shadow at rest unless they are elevated containers. Interactive elements earn their shadow on hover; they do not arrive with one.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Conviction Hover Rule",
+        "body": "Interactive cards fill completely with Foundation Blue on hover; all text inverts to white. No half-measures. The transition is 0.3s cubic-bezier(0.4,0,0.2,1) via an absolutely-positioned ::before pseudo-element.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do use Research Teal (#01d1d1) for underlines, borders, metadata, and accent elements at no more than 10% of any given surface.",
+      "Do use Research Teal Deep (#008080) as the only filled CTA button fill color.",
+      "Do keep all body text at 65-75ch max-width on desktop.",
+      "Do use Anchor Navy (#1a2e3b) for the footer and display-weight heading text on dark surfaces.",
+      "Do let interactive cards commit fully on hover: complete Foundation Blue fill, full text inversion.",
+      "Do tint all shadows with brand navy or brand blue.",
+      "Do vary section backgrounds to create vertical rhythm without border-based section separators.",
+      "Do honor WCAG AA: 4.5:1 for body text, 3:1 for large text and controls.",
+      "Do respect prefers-reduced-motion for all non-essential transitions."
+    ],
+    "donts": [
+      "Don't use side-stripe borders (border-left or border-right greater than 1px as a colored accent on cards or callouts).",
+      "Don't build the generic charity template: no three-column identical icon-card grids, no stock-photo smiling-doctors layout, no bold 'DONATE NOW' billboard hero.",
+      "Don't use the hero-metric template: no giant statistic + label + gradient accent block.",
+      "Don't use neutral gray shadows (rgba(0,0,0,0.X)). All shadows are tonal.",
+      "Don't use pure white (#ffffff) or pure black (#000000) as base page colors.",
+      "Don't introduce a second typeface.",
+      "Don't use gradient text (background-clip: text with a gradient fill).",
+      "Don't animate CSS layout properties (width, height, padding, margin).",
+      "Don't use glassmorphism decoratively."
+    ]
+  }
+}

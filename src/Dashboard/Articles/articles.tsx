@@ -2,6 +2,16 @@ import { StrictMode, useEffect, useState, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
 import '../../index.css'
 import "./articles.css"
+import {
+    Panel,
+    Field,
+    EmptyState,
+    SaveButton,
+    SectionRail,
+    DashboardSkeleton,
+    useDashboardRail,
+    type Section,
+} from '../shell'
 import Header from '../../components/header'
 import { isUserLoggedIn } from '../../api/auth'
 import { Article, Photo, PRSM } from '../../constants'
@@ -12,6 +22,11 @@ createRoot(document.getElementById('root')!).render(
         <App />
     </StrictMode>,
 )
+
+const SECTIONS: Section[] = [
+    { id: 'subtitle', label: 'Subtitle' },
+    { id: 'articles', label: 'Articles' },
+]
 
 class ArticleEdit {
     id?: string;
@@ -120,6 +135,8 @@ function App() {
     const [subtitle, setSubtitle] = useState('');
     const [canSaveSubtitle, setCanSaveSubtitle] = useState(false);
     const [loadingSaveSubtitle, setLoadingSaveSubtitle] = useState(false);
+
+    const { activeSection, goToSection } = useDashboardRail(SECTIONS, !loading);
 
     useEffect(() => {
         isUserLoggedIn(() => { });
@@ -251,171 +268,196 @@ function App() {
     return (
         <>
             <Header isDashboardArticlesPage={true} />
-            {prsm && (
-                <section className="dashboard-section light">
-                    <div className="section-title">
-                        <h1>Page Subtitle</h1>
-                        <p>Edit the subtitle shown under the "Articles" heading.</p>
-                    </div>
-                    <div className="articles-dashboard-content">
-                        <div className="article-form-group" style={{ width: '100%', maxWidth: 600 }}>
-                            <label>Subtitle:</label>
-                            <textarea
-                                className="input-light"
-                                value={subtitle}
-                                onChange={e => handleSubtitleChange(e.target.value)}
-                            />
-                            {canSaveSubtitle && !loadingSaveSubtitle && (
-                                <button className="btn-primary" onClick={saveSubtitle}>Save</button>
-                            )}
-                            {loadingSaveSubtitle && <div className="loader"></div>}
-                        </div>
-                    </div>
-                </section>
-            )}
-            {!loading ? (
-                <section className="dashboard-section light">
-                    <div className="section-title">
-                        <h1>Articles</h1>
-                        <p>Create, edit, and manage articles.</p>
-                    </div>
-                    <div className="articles-dashboard-content">
-                        <div className="articles-dashboard-list">
-                            {articles.length === 0 && <div style={{ textAlign: 'center' }}>No articles yet.</div>}
-                            {articles.map((article) => (
-                                <div className="articles-dashboard-item" key={article.id}>
-                                    {editingId === article.id ? (
-                                        <>
-                                            <div className="article-form-group">
-                                                <label>Title:</label>
-                                                <input
-                                                    type="text"
-                                                    className="input-light"
-                                                    value={editingArticle?.title || ''}
-                                                    onChange={e => setEditingArticle(new ArticleEdit({ ...editingArticle!, title: e.target.value }))}
-                                                />
-                                            </div>
-                                            <div className="article-form-group">
-                                                <label>Main Image:</label>
-                                                {(editingArticle?.mainImageFile || editingArticle?.mainImageUrl) && (
-                                                    <div style={{ marginBottom: '0.5rem' }}>
-                                                        <img
-                                                            src={editingArticle.mainImageFile ? URL.createObjectURL(editingArticle.mainImageFile) : editingArticle.mainImageUrl}
-                                                            alt="Preview"
-                                                            style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, objectFit: 'cover' }}
-                                                        />
-                                                        <button
-                                                            className="btn-danger"
-                                                            style={{ marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
-                                                            onClick={() => setEditingArticle(new ArticleEdit({ ...editingArticle!, mainImageFile: undefined, mainImageUrl: undefined, mainImageId: undefined }))}
-                                                        >
-                                                            Remove Image
-                                                        </button>
-                                                    </div>
-                                                )}
-                                                <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    className="input-light"
-                                                    onChange={(e) => {
-                                                        if (e.target.files && e.target.files[0]) {
-                                                            setEditingArticle(new ArticleEdit({ ...editingArticle!, mainImageFile: e.target.files[0] }));
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-                                            <div className="article-form-group">
-                                                <label>Body:</label>
-                                                <RichTextEditor
-                                                    key={`edit-${article.id}`}
-                                                    value={editingArticle?.body || ''}
-                                                    onChange={(html) => setEditingArticle(new ArticleEdit({ ...editingArticle!, body: html }))}
-                                                />
-                                            </div>
-                                            <div className="articles-dashboard-actions">
-                                                <button className="btn-primary" onClick={handleSaveArticle}>Save</button>
-                                                <button className="btn-danger" onClick={handleCancelEdit}>Cancel</button>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="articles-dashboard-item-preview">
-                                                <div className="articles-dashboard-item-info">
-                                                    <h4>{article.title}</h4>
-                                                    <p style={{ color: '#0A6C95', fontWeight: 600 }}>
-                                                        {article.getDisplayDate()}
-                                                    </p>
-                                                    <p>{getExcerpt(article.body)}</p>
-                                                </div>
-                                            </div>
-                                            <div className="articles-dashboard-actions">
-                                                <button className="btn-primary" onClick={() => handleEditArticle(article)}>Edit</button>
-                                                <button className="btn-danger" onClick={() => handleDeleteArticle(article.id)}>Delete</button>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
+            <main className="dash">
+                <div className="dash-head">
+                    <p className="kicker">Site content</p>
+                    <h1>Articles</h1>
+                    <p className="dash-head-sub">
+                        The subtitle on the Articles page and every published article. Each
+                        article saves on its own as you add, edit, or delete it.
+                    </p>
+                </div>
 
-                        <div className="articles-dashboard-add">
-                            <h3 style={{ margin: '0 0 1rem 0' }}>Create New Article</h3>
-                            <div className="article-form-group">
-                                <label>Title:</label>
-                                <input
-                                    type="text"
-                                    className="input-light"
-                                    placeholder="Article title"
-                                    value={newArticle.title}
-                                    onChange={e => setNewArticle(new ArticleEdit({ ...newArticle, title: e.target.value }))}
-                                />
-                            </div>
-                            <div className="article-form-group">
-                                <label>Main Image:</label>
-                                {newArticle.mainImageFile && (
-                                    <div style={{ marginBottom: '0.5rem' }}>
-                                        <img
-                                            src={URL.createObjectURL(newArticle.mainImageFile)}
-                                            alt="Preview"
-                                            style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, objectFit: 'cover' }}
-                                        />
-                                        <button
-                                            className="btn-danger"
-                                            style={{ marginTop: '0.5rem', fontSize: '0.8rem', padding: '0.3rem 0.7rem' }}
-                                            onClick={() => setNewArticle(new ArticleEdit({ ...newArticle, mainImageFile: undefined }))}
-                                        >
-                                            Remove Image
-                                        </button>
+                {loading ? (
+                    <DashboardSkeleton sections={SECTIONS} panels={2} />
+                ) : (
+                    <>
+                        <SectionRail
+                            sections={SECTIONS}
+                            activeSection={activeSection}
+                            goToSection={goToSection}
+                        />
+
+                        <div className="dash-main">
+                            {/* ---- Subtitle ---- */}
+                            <Panel
+                                id="subtitle"
+                                title="Page subtitle"
+                                desc='The supporting line under the "Articles" heading.'
+                                action={
+                                    <SaveButton
+                                        dirty={canSaveSubtitle}
+                                        loading={loadingSaveSubtitle}
+                                        onClick={saveSubtitle}
+                                        label="Save subtitle"
+                                    />
+                                }
+                            >
+                                <Field label="Subtitle" htmlFor="articles-subtitle">
+                                    <textarea
+                                        id="articles-subtitle"
+                                        className="field"
+                                        value={subtitle}
+                                        onChange={e => handleSubtitleChange(e.target.value)}
+                                    />
+                                </Field>
+                            </Panel>
+
+                            {/* ---- Articles ---- */}
+                            <Panel
+                                id="articles"
+                                title="Articles"
+                                desc="Create, edit, and publish articles. Changes save immediately."
+                                action={
+                                    loadingSave ? (
+                                        <span className="saving-inline">
+                                            <span className="spinner-sm is-dark" aria-hidden="true" />
+                                            Saving…
+                                        </span>
+                                    ) : undefined
+                                }
+                            >
+                                {articles.length === 0 ? (
+                                    <EmptyState>No articles yet. Write your first one below.</EmptyState>
+                                ) : (
+                                    <div className="art-list">
+                                        {articles.map((article) =>
+                                            editingId === article.id ? (
+                                                <div className="art-item is-editing" key={article.id}>
+                                                    <div className="art-edit-fields">
+                                                        <Field label="Title">
+                                                            <input
+                                                                type="text"
+                                                                className="field"
+                                                                value={editingArticle?.title || ''}
+                                                                onChange={e => setEditingArticle(new ArticleEdit({ ...editingArticle!, title: e.target.value }))}
+                                                            />
+                                                        </Field>
+                                                        <Field label="Main image">
+                                                            <div className="art-image-field">
+                                                                {(editingArticle?.mainImageFile || editingArticle?.mainImageUrl) && (
+                                                                    <div className="art-image-preview">
+                                                                        <img
+                                                                            src={editingArticle.mainImageFile ? URL.createObjectURL(editingArticle.mainImageFile) : editingArticle.mainImageUrl}
+                                                                            alt="Preview"
+                                                                        />
+                                                                        <button
+                                                                            className="btn-quiet is-danger"
+                                                                            onClick={() => setEditingArticle(new ArticleEdit({ ...editingArticle!, mainImageFile: undefined, mainImageUrl: undefined, mainImageId: undefined }))}
+                                                                        >
+                                                                            Remove image
+                                                                        </button>
+                                                                    </div>
+                                                                )}
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    className="field-file"
+                                                                    onChange={(e) => {
+                                                                        if (e.target.files && e.target.files[0]) {
+                                                                            setEditingArticle(new ArticleEdit({ ...editingArticle!, mainImageFile: e.target.files[0] }));
+                                                                        }
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        </Field>
+                                                        <Field label="Body">
+                                                            <RichTextEditor
+                                                                key={`edit-${article.id}`}
+                                                                value={editingArticle?.body || ''}
+                                                                onChange={(html) => setEditingArticle(new ArticleEdit({ ...editingArticle!, body: html }))}
+                                                            />
+                                                        </Field>
+                                                    </div>
+                                                    <div className="row-actions">
+                                                        <button className="btn-quiet" onClick={handleSaveArticle}>Save</button>
+                                                        <button className="btn-quiet" onClick={handleCancelEdit}>Cancel</button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="art-item" key={article.id}>
+                                                    <div className="art-main">
+                                                        {article.mainImage?.url && (
+                                                            <img className="art-thumb" src={article.mainImage.url} alt={article.title} />
+                                                        )}
+                                                        <div className="art-info">
+                                                            <span className="row-title">{article.title}</span>
+                                                            <span className="art-meta">{article.getDisplayDate()}</span>
+                                                            <span className="art-excerpt">{getExcerpt(article.body)}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="row-actions">
+                                                        <button className="btn-quiet" onClick={() => handleEditArticle(article)}>Edit</button>
+                                                        <button className="btn-quiet is-danger" onClick={() => handleDeleteArticle(article.id)}>Delete</button>
+                                                    </div>
+                                                </div>
+                                            )
+                                        )}
                                     </div>
                                 )}
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    className="input-light"
-                                    onChange={(e) => {
-                                        if (e.target.files && e.target.files[0]) {
-                                            setNewArticle(new ArticleEdit({ ...newArticle, mainImageFile: e.target.files[0] }));
-                                        }
-                                    }}
-                                />
-                            </div>
-                            <div className="article-form-group">
-                                <label>Body:</label>
-                                <RichTextEditor
-                                    key="new-article"
-                                    value={newArticle.body}
-                                    onChange={(html) => setNewArticle(new ArticleEdit({ ...newArticle, body: html }))}
-                                />
-                            </div>
-                            <button className="btn-primary" onClick={handleAddArticle}>Add Article</button>
-                        </div>
 
-                        {loadingSave && <div className="loader"></div>}
-                    </div>
-                </section>
-            ) : (
-                <div className="loader-container"><div className="loader"></div></div>
-            )}
+                                <div className="art-add">
+                                    <h3 className="art-add-title">Create article</h3>
+                                    <Field label="Title">
+                                        <input
+                                            type="text"
+                                            className="field"
+                                            placeholder="Article title"
+                                            value={newArticle.title}
+                                            onChange={e => setNewArticle(new ArticleEdit({ ...newArticle, title: e.target.value }))}
+                                        />
+                                    </Field>
+                                    <Field label="Main image">
+                                        <div className="art-image-field">
+                                            {newArticle.mainImageFile && (
+                                                <div className="art-image-preview">
+                                                    <img src={URL.createObjectURL(newArticle.mainImageFile)} alt="Preview" />
+                                                    <button
+                                                        className="btn-quiet is-danger"
+                                                        onClick={() => setNewArticle(new ArticleEdit({ ...newArticle, mainImageFile: undefined }))}
+                                                    >
+                                                        Remove image
+                                                    </button>
+                                                </div>
+                                            )}
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="field-file"
+                                                onChange={(e) => {
+                                                    if (e.target.files && e.target.files[0]) {
+                                                        setNewArticle(new ArticleEdit({ ...newArticle, mainImageFile: e.target.files[0] }));
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </Field>
+                                    <Field label="Body">
+                                        <RichTextEditor
+                                            key="new-article"
+                                            value={newArticle.body}
+                                            onChange={(html) => setNewArticle(new ArticleEdit({ ...newArticle, body: html }))}
+                                        />
+                                    </Field>
+                                    <div>
+                                        <button className="btn-quiet" onClick={handleAddArticle}>Add article</button>
+                                    </div>
+                                </div>
+                            </Panel>
+                        </div>
+                    </>
+                )}
+            </main>
         </>
     );
 }

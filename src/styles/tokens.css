@@ -1,0 +1,279 @@
+/* =============================================================
+   PRSM Allergy Foundation — Design Tokens
+   "The Hopeful Cartographer": plotting the path from research
+   to community impact. Two-voice color (Research Teal accent,
+   Foundation Blue depth), Anchor Navy ground, light surfaces.
+   ============================================================= */
+
+:root {
+  /* ---- Brand voices (committed identity, exact hex) ---- */
+  --research-teal: #01d1d1;
+  --research-teal-deep: #008080;
+  --research-teal-deeper: #006666;
+  --research-teal-wash: #01d1d114;
+  --foundation-blue: #0a6c95;
+  --foundation-blue-deep: #054d6f;
+  --anchor-navy: #1a2e3b;
+
+  /* ---- Tinted neutrals (OKLCH, hued toward teal ~195) ---- */
+  --bg: #f6fbfd;                      /* Pale Horizon — page ground */
+  --surface: #ffffff;                 /* elevated containers */
+  --surface-sunken: oklch(97.8% 0.008 200);   /* teal-tinted off-white */
+  --ink: #1a2e3b;                     /* Anchor Navy — headings */
+  --body: #425466;                    /* Body Slate — primary prose */
+  --muted: oklch(47% 0.022 224);      /* metadata, captions (AA on white) */
+  --hairline: oklch(90% 0.015 215);   /* dividers / borders at rest */
+  --border-mist: #dae5ed;
+
+  /* Cartographic structure (very faint) */
+  --grid-line: color-mix(in oklch, var(--anchor-navy) 4.5%, transparent);
+  --grid-line-strong: color-mix(in oklch, var(--anchor-navy) 8%, transparent);
+  --contour: color-mix(in oklch, var(--foundation-blue) 7%, transparent);
+
+  /* ---- Tonal descent ----
+     A single continuous flow down the light run. Each section's gradient
+     chains bottom-stop → next section's top-stop, so reordering tiles never
+     opens a seam. Pale Horizon warms imperceptibly into the teal-wash band
+     (fundraiser + events). Stops are solid so adjacent edges meet exactly. */
+  --descent-0: var(--bg);
+  --descent-1: color-mix(in oklch, var(--research-teal) 2%, var(--bg));
+  --descent-2: color-mix(in oklch, var(--research-teal) 4%, var(--bg));
+  --descent-3: color-mix(in oklch, var(--research-teal) 6%, var(--bg));
+  /* solid equivalent of --research-teal-wash composited over --bg; the
+     fundraiser gradient lands here and the events band picks it up flat */
+  --descent-band: color-mix(in oklch, var(--research-teal) 7.5%, var(--bg));
+
+  /* On-dark (navy / blue gradient surfaces) */
+  --on-dark: #f6fbfd;
+  --on-dark-soft: color-mix(in oklch, #f6fbfd 78%, transparent);
+  --on-dark-faint: color-mix(in oklch, #f6fbfd 14%, transparent);
+  --error-rose: #ffb3b3;
+
+  /* ---- Type ---- */
+  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+
+  /* fluid display, fixed body (per typography guidance) */
+  --text-display: clamp(2.5rem, 1.45rem + 4.2vw, 4.25rem);
+  --text-h2: clamp(1.85rem, 1.3rem + 2.1vw, 2.75rem);
+  --text-h3: clamp(1.4rem, 1.15rem + 1vw, 1.85rem);
+  --text-lede: clamp(1.125rem, 1.02rem + 0.45vw, 1.375rem);
+  --text-body: 1.0625rem;             /* 17px */
+  --text-sm: 0.9375rem;
+  --text-label: 0.78rem;
+
+  --tracking-display: -0.022em;
+  --tracking-label: 0.13em;
+  --leading-body: 1.65;
+  --measure: 66ch;
+
+  /* ---- Spacing (4pt base) ---- */
+  --space-2: 0.125rem;
+  --space-4: 0.25rem;
+  --space-8: 0.5rem;
+  --space-12: 0.75rem;
+  --space-16: 1rem;
+  --space-24: 1.5rem;
+  --space-32: 2rem;
+  --space-48: 3rem;
+  --space-64: 4rem;
+  --space-96: 6rem;
+  /* fluid section rhythm */
+  --section-y: clamp(3.5rem, 2rem + 6vw, 7rem);
+  --gutter: clamp(1.25rem, 0.5rem + 3vw, 3.5rem);
+  --maxw: 1200px;
+  --maxw-prose: 720px;
+
+  /* ---- Radius ---- */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-xl: 28px;
+  --r-pill: 999px;
+
+  /* ---- Media ----
+     One aspect ratio for the event photo across every surface (detail
+     hero, list preview, and the dashboard cropper) so the admin's
+     pan/zoom is true WYSIWYG. Crop = object-position + scale, which
+     only stays identical when the frame ratio is identical. */
+  --event-image-ratio: 16 / 9;
+
+  /* ---- Tonal elevation (brand-tinted, never neutral black) ---- */
+  --shadow-rest: 0 2px 10px rgba(24, 49, 79, 0.07);
+  --shadow-hover: 0 14px 34px rgba(10, 108, 149, 0.16);
+  --shadow-frame: 0 18px 60px rgba(24, 49, 79, 0.12);
+  --focus-ring: 0 0 0 3px rgba(0, 128, 128, 0.28);
+
+  /* ---- Motion ---- */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 140ms;
+  --dur-mid: 280ms;
+  --dur-slow: 600ms;
+
+  /* z-index scale */
+  --z-header: 100;
+  --z-menu: 99;
+}
+
+/* ============================ Base reset ============================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--body);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-kerning: normal;
+  font-feature-settings: "cv05" 1, "ss01" 1; /* Inter: open digits / refined glyphs */
+}
+
+h1, h2, h3, h4 {
+  color: var(--ink);
+  font-weight: 700;
+  line-height: 1.15;
+  text-wrap: balance;
+  margin: 0;
+}
+
+p { margin: 0; }
+
+a { color: var(--research-teal-deep); text-decoration: none; }
+
+img { display: block; max-width: 100%; }
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--r-sm);
+}
+
+::selection {
+  background: color-mix(in oklch, var(--research-teal) 28%, transparent);
+  color: var(--ink);
+}
+
+/* ===================== Shared layout helpers ===================== */
+.section {
+  padding-block: var(--section-y);
+  padding-inline: var(--gutter);
+  position: relative;
+  overflow: clip;
+}
+
+/* anchor jumps clear the sticky header */
+:where(section[id], [id]#main) {
+  scroll-margin-top: 88px;
+}
+
+.shell {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+}
+
+/* Map-coordinate kicker — the cartographic waypoint label.
+   A deliberate, named brand system, not generic eyebrow scaffolding. */
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--research-teal-deep);
+  margin: 0;
+}
+.kicker::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex: none;
+  background: var(--research-teal);
+  /* diamond map-marker */
+  rotate: 45deg;
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--research-teal) 18%, transparent);
+}
+
+.lede {
+  font-size: var(--text-lede);
+  line-height: 1.5;
+  color: var(--body);
+  max-width: 60ch;
+}
+
+.prose { max-width: var(--measure); }
+
+/* visually hidden, still read by assistive tech */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============== Cartographic field (subtle structure) ============== */
+.cartographic {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 68px 68px;
+  background-position: center;
+  /* fade the grid out toward edges so it reads as atmosphere */
+  -webkit-mask-image: radial-gradient(120% 120% at 70% 30%, #000 35%, transparent 78%);
+  mask-image: radial-gradient(120% 120% at 70% 30%, #000 35%, transparent 78%);
+}
+
+/* ===================== Reveal (scroll-in) ===================== */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity var(--dur-slow) var(--ease-out-expo),
+    transform var(--dur-slow) var(--ease-out-expo);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+[data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ===================== Reduced motion ===================== */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

@@ -1,114 +1,86 @@
 .newsletter {
-    padding: 3rem 1rem;
-    background: linear-gradient(135deg, var(--primary, #0A6C95) 0%, #054d6f 100%);
+  position: relative;
+  overflow: clip;
+  background: linear-gradient(135deg, var(--foundation-blue) 0%, var(--foundation-blue-deep) 100%);
 }
 
-.newsletter-container {
-    max-width: 600px;
-    margin: 0 auto;
-    text-align: center;
+/* faint coordinate grid in light ink, on the dark gradient */
+.newsletter-grid-bg {
+  background-image:
+    linear-gradient(rgba(246, 251, 253, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(246, 251, 253, 0.06) 1px, transparent 1px);
+  background-size: 72px 72px;
+  -webkit-mask-image: radial-gradient(100% 120% at 80% 10%, #000 30%, transparent 80%);
+  mask-image: radial-gradient(100% 120% at 80% 10%, #000 30%, transparent 80%);
 }
 
-.newsletter h3 {
-    font-size: 2rem;
-    font-weight: bold;
-    color: white;
-    margin-bottom: 1rem;
+.newsletter-shell {
+  position: relative;
+  z-index: 1;
+  max-width: 680px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-16);
 }
 
-.newsletter p {
-    font-size: 1rem;
-    color: rgba(255, 255, 255, 0.9);
-    margin-bottom: 2rem;
-    line-height: 1.6;
+.newsletter-kicker { color: color-mix(in oklch, var(--research-teal) 60%, #fff); }
+.newsletter-kicker::before {
+  background: var(--research-teal);
+  box-shadow: 0 0 0 4px rgba(1, 209, 209, 0.25);
+}
+
+.newsletter-title {
+  font-size: var(--text-h2);
+  color: #fff;
+  letter-spacing: -0.015em;
+}
+
+.newsletter-copy {
+  font-size: var(--text-lede);
+  line-height: 1.5;
+  color: var(--on-dark-soft);
+  max-width: 46ch;
 }
 
 .newsletter-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  display: flex;
+  gap: var(--space-12);
+  width: 100%;
+  max-width: 480px;
+  margin-top: var(--space-8);
 }
-
 .newsletter-input {
-    padding: 1rem;
-    font-size: 1rem;
-    border: none;
-    border-radius: 4px;
-    outline: none;
-    background: white;
-    color: #333;
-    transition: box-shadow 0.3s ease;
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--ink);
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: var(--r-lg);
+  padding: 0.8rem 1.1rem;
+  transition: box-shadow var(--dur-mid) var(--ease-out-quart), border-color var(--dur-mid) var(--ease-out-quart);
 }
-
-.newsletter-input::placeholder {
-    color: #999;
+.newsletter-input::placeholder { color: var(--muted); }
+.newsletter-input:focus,
+.newsletter-input:focus-visible {
+  outline: none;
+  border-color: var(--research-teal);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.35);
 }
+.newsletter-input:disabled { opacity: 0.7; }
 
-.newsletter-input:focus {
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+.newsletter-status {
+  min-height: 1.4em;
+  font-weight: 600;
+  font-size: var(--text-sm);
 }
+.newsletter-status .is-success { color: #fff; }
+.newsletter-status .is-error { color: var(--error-rose); }
 
-.newsletter-success,
-.newsletter-error {
-    margin-top: 1rem;
-    font-weight: 600;
-    animation: slideIn 0.3s ease;
-}
-
-.newsletter-success {
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.newsletter-error {
-    color: #ffb3b3;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@media only screen and (max-width: 768px) {
-    .newsletter {
-        padding: 2rem 1rem;
-    }
-
-    .newsletter h3 {
-        font-size: 1.5rem;
-    }
-
-    .newsletter p {
-        font-size: 0.95rem;
-    }
-
-    .newsletter-form {
-        gap: 0.75rem;
-    }
-
-    .newsletter-input,
-    .newsletter-btn {
-        font-size: 0.95rem;
-        padding: 0.875rem;
-    }
-}
-
-@media only screen and (max-width: 480px) {
-    .newsletter-container {
-        max-width: 100%;
-    }
-
-    .newsletter h3 {
-        font-size: 1.25rem;
-    }
-
-    .newsletter p {
-        font-size: 0.9rem;
-    }
+@media (max-width: 560px) {
+  .newsletter-form { flex-direction: column; }
+  .newsletter-form .btn-on-dark { width: 100%; }
 }

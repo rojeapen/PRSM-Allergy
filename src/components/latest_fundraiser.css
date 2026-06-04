@@ -1,166 +1,71 @@
-.latest-fundraiser {
-    padding: 3rem 1rem;
-    background: var(--primary-light);
+.fundraiser {
+  /* descent lands on the band: --descent-3 (= about bottom) → --descent-band,
+     which the events section then carries flat. */
+  background:
+    linear-gradient(180deg, var(--descent-3) 0%, var(--descent-band) 55%, var(--descent-band) 100%);
 }
 
-.latest-fundraiser-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: center;
+.fundraiser-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(2rem, 1rem + 4vw, 4.5rem);
+  align-items: center;
 }
 
-.latest-fundraiser .fundraiser-image {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+.fundraiser-figure {
+  position: relative;
+}
+.fundraiser-frame {
+  position: relative;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-frame);
+  background: var(--surface);
+}
+.fundraiser-frame img {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.fundraiser-mark {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 13px;
+  height: 13px;
+  rotate: 45deg;
+  background: var(--research-teal);
+  box-shadow: 0 0 0 5px color-mix(in oklch, var(--surface) 70%, transparent);
 }
 
-.latest-fundraiser .fundraiser-image img {
-    width: 100%;
-    height: auto;
-    border-radius: 8px;
-    object-fit: cover;
+.fundraiser-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-16);
+}
+.fundraiser-name {
+  font-size: var(--text-h2);
+  letter-spacing: -0.015em;
+}
+.fundraiser-desc {
+  font-size: var(--text-lede);
+  line-height: 1.55;
+  color: var(--body);
+}
+.fundraiser-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-24);
+  margin-top: var(--space-8);
 }
 
-.latest-fundraiser .fundraiser-stats {
-    display: flex;
-    gap: 2rem;
-    background: white;
-    padding: 1.5rem;
-    border-radius: 8px;
-}
-
-.latest-fundraiser .stat {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.latest-fundraiser .stat-value {
-    font-size: 1.75rem;
-    font-weight: bold;
-    color: var(--primary, #0A6C95);
-}
-
-.latest-fundraiser .stat-label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #666;
-    letter-spacing: 0.05em;
-}
-
-.latest-fundraiser .fundraiser-progress {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-}
-
-.latest-fundraiser .progress-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #333;
-}
-
-.latest-fundraiser .progress-bar {
-    width: 100%;
-    height: 8px;
-    background: #e0e0e0;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.latest-fundraiser .progress-fill {
-    height: 100%;
-    background: var(--primary, #0A6C95);
-    transition: width 0.3s ease;
-}
-
-.latest-fundraiser .fundraiser-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.latest-fundraiser .fundraiser-label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #666;
-    letter-spacing: 0.05em;
-    margin: 0;
-}
-
-.latest-fundraiser .fundraiser-content h3 {
-    font-size: 2rem;
-    font-weight: bold;
-    color: black;
-    line-height: 1.2;
-    margin: 0;
-}
-
-.latest-fundraiser .fundraiser-description {
-    font-size: 1rem;
-    line-height: 1.6;
-    color: #555;
-    margin: 0;
-}
-
-@media only screen and (max-width: 768px) {
-    .latest-fundraiser {
-        padding: 2rem 1rem;
-    }
-
-    .latest-fundraiser-container {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-
-    .latest-fundraiser .fundraiser-content h3 {
-        font-size: 1.5rem;
-    }
-
-    .latest-fundraiser .fundraiser-description {
-        font-size: 0.95rem;
-    }
-
-    .latest-fundraiser .fundraiser-stats {
-        gap: 1.5rem;
-        padding: 1rem;
-    }
-
-    .latest-fundraiser .stat-value {
-        font-size: 1.5rem;
-    }
-}
-
-@media only screen and (max-width: 480px) {
-    .latest-fundraiser-container {
-        gap: 1.5rem;
-    }
-
-    .latest-fundraiser-content h3 {
-        font-size: 1.25rem;
-    }
-
-    .latest-fundraiser .fundraiser-stats {
-        gap: 1rem;
-        padding: 0.75rem;
-    }
-
-    .latest-fundraiser .stat-value {
-        font-size: 1.25rem;
-    }
-
-    .latest-fundraiser .fundraiser-btn {
-        padding: 0.75rem 1.5rem;
-        font-size: 0.85rem;
-    }
+@media (max-width: 860px) {
+  .fundraiser-grid {
+    grid-template-columns: 1fr;
+    gap: clamp(1.75rem, 1rem + 3vw, 2.5rem);
+  }
+  .fundraiser-frame img { aspect-ratio: 16 / 10; }
 }

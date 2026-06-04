@@ -1,28 +1,54 @@
-import { ORIGIN, Event } from '../constants';
+import { ORIGIN, DEFAULT_COPY, type Event } from '../constants';
+import Reveal from './reveal';
 import './events.css';
 
-function Events({ upcomingEvents, subtitle }: { upcomingEvents: Event[], subtitle?: string }) {
-
-
+function Events({ upcomingEvents, kicker, title, subtitle }: { upcomingEvents: Event[]; kicker?: string; title?: string; subtitle?: string }) {
     return (
-        <section id="events" className="events">
-            <div className="events-container">
-                <h3>Upcoming Events</h3>
-                <p className="events-description">{subtitle != null ? subtitle : "Join fundraisers, awareness walks, and educational webinars."}</p>
-                <div className="events-grid">
-                    {upcomingEvents.map((event, i) => (
-                        <div key={event.title} className="event-card" onClick={() => {
-                            console.log("Clicked event:", event);
-                            window.location.href = ORIGIN + `Events/detail.html?id=${i}`;
-                        }}>
-                            <time dateTime={event.date} className="event-date">{event.displayDate}</time>
-                            <h4 className="event-title">{event.title}</h4>
-                            <p className="event-location">{event.location}</p>
-                        </div>
-                    ))}
-                </div>
-                <br />
-                <button className="btn-secondary all-events" onClick={() => window.location.href = ORIGIN + "Events/"}>View all events</button>
+        <section id="events" className="events section">
+            <div className="cartographic" aria-hidden="true" />
+            <div className="shell events-shell">
+                <Reveal className="events-head">
+                    <p className="kicker">{kicker || DEFAULT_COPY.eventsKicker}</p>
+                    <h2 className="events-title">{title || DEFAULT_COPY.eventsTitle}</h2>
+                    <p className="lede">
+                        {subtitle || DEFAULT_COPY.eventsSubtitle}
+                    </p>
+                </Reveal>
+
+                <ul className="agenda">
+                    {upcomingEvents.map((event, i) => {
+                        const time = event.getFormattedTime();
+                        return (
+                            <Reveal as="li" key={event.title + event.date} delay={i * 90}>
+                                <a className="event-row" href={`${ORIGIN}Events/detail.html?id=${i}`}>
+                                    <span className="event-when">
+                                        <span className="event-when-marker" aria-hidden="true" />
+                                        <time dateTime={event.date}>{event.displayDate}</time>
+                                    </span>
+                                    <span className="event-main">
+                                        <span className="event-title">{event.title}</span>
+                                        <span className="event-meta">
+                                            {time && <span>{time}</span>}
+                                            {time && event.location && <span className="event-dot" aria-hidden="true">·</span>}
+                                            {event.location && <span>{event.location}</span>}
+                                        </span>
+                                    </span>
+                                    <span className="event-go" aria-hidden="true">→</span>
+                                </a>
+                            </Reveal>
+                        );
+                    })}
+                </ul>
+
+                <Reveal className="events-cta" delay={80}>
+                    <button
+                        className="btn-secondary"
+                        onClick={() => (window.location.href = ORIGIN + 'Events/')}
+                    >
+                        View all events
+                        <span className="btn-arrow" aria-hidden="true">→</span>
+                    </button>
+                </Reveal>
             </div>
         </section>
     );

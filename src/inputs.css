@@ -1,25 +1,45 @@
+/* Form fields — white surface, brand-tinted focus, no default outline. */
+
+.field,
 .input {
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    width: 250px;
-    background-color: white;
-    color: black;
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--border-mist);
+  border-radius: var(--r-md);
+  padding: 0.85rem 1rem;
+  transition:
+    border-color var(--dur-mid) var(--ease-out-quart),
+    box-shadow var(--dur-mid) var(--ease-out-quart);
 }
 
-.input:focus {
-    outline: 2px solid var(--primary-dark);
+.field::placeholder,
+.input::placeholder { color: var(--muted); }
+
+.field:focus,
+.field:focus-visible,
+.input:focus,
+.input:focus-visible {
+  outline: none;
+  border-color: var(--research-teal-deep);
+  box-shadow: var(--focus-ring);
 }
 
+.field:disabled,
+.input:disabled { opacity: 0.65; cursor: not-allowed; }
+
+/* legacy light variant kept for non-landing pages */
 .input-light {
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    width: 250px;
-    background-color: var(--primary-light);
-    color: black;
+  width: 250px;
+  padding: 10px;
+  border: none;
+  border-radius: var(--r-sm);
+  background-color: var(--research-teal-wash);
+  color: var(--ink);
 }
-
 .input-light:focus {
-    outline: 2px solid var(--primary);
+  outline: none;
+  box-shadow: var(--focus-ring);
 }

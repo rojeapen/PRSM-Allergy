@@ -1,0 +1,478 @@
+/* =====================================================================
+   Dashboard shell — shared vocabulary for every admin page.
+   Product register: a tool that disappears into the task. Restrained
+   color (teal-deep is the only action voice), light theme, token-driven.
+   A sticky section rail provides wayfinding; panels are self-contained
+   editing surfaces. Page-specific pieces live in each page's own CSS.
+   ===================================================================== */
+
+.dash {
+  --dash-top: 80px;            /* clears the sticky header for anchored jumps */
+  --rail-w: 208px;
+  max-width: 1160px;
+  margin-inline: auto;
+  padding: clamp(1.5rem, 1rem + 2vw, 3rem) var(--gutter) var(--space-96);
+  display: grid;
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  column-gap: clamp(1.5rem, 1rem + 2.5vw, 3.25rem);
+  row-gap: var(--space-32);
+  align-items: start;
+}
+
+/* Single-section pages (no rail): one centered, readable column. */
+.dash.is-solo {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 880px;
+}
+
+/* ---- Page header (spans both columns) ---- */
+.dash-head {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.dash-head h1 {
+  font-size: var(--text-h2);
+  letter-spacing: var(--tracking-display);
+}
+.dash-head-sub {
+  color: var(--body);
+  font-size: var(--text-lede);
+  line-height: 1.5;
+  max-width: 60ch;
+}
+
+/* ============================ Section rail ============================ */
+.dash-rail {
+  position: sticky;
+  top: var(--dash-top);
+  align-self: start;
+}
+.dash-rail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dash-rail-title {
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 var(--space-12) var(--space-8);
+}
+.rail-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--body);
+  background: none;
+  border: none;
+  border-radius: var(--r-md);
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition:
+    color var(--dur-fast) var(--ease-out-quart),
+    background-color var(--dur-fast) var(--ease-out-quart);
+}
+.rail-link::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: var(--r-pill);
+  background: currentColor;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity var(--dur-fast) linear, transform var(--dur-mid) var(--ease-out-quart);
+}
+.rail-link:hover {
+  background: var(--surface-sunken);
+  color: var(--ink);
+}
+.rail-link[aria-current="true"] {
+  color: var(--research-teal-deep);
+  background: var(--research-teal-wash);
+  font-weight: 600;
+}
+.rail-link[aria-current="true"]::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ============================ Main column ============================ */
+.dash-main {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1.25rem, 1rem + 1vw, 2rem);
+  min-width: 0;
+}
+
+/* ---- Panel: one content section ---- */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-rest);
+  scroll-margin-top: var(--dash-top);
+  overflow: clip;
+}
+.panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-24);
+  padding: var(--space-24);
+  border-bottom: 1px solid var(--hairline);
+}
+.panel-head-text h2 {
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+.panel-head-text p {
+  margin-top: var(--space-4);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  max-width: 56ch;
+}
+.panel-head-action { flex: none; }
+.panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  padding: var(--space-24);
+}
+
+/* sub-block inside a panel (two independent saves under one heading) */
+.subblock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+.subblock + .subblock {
+  padding-top: var(--space-24);
+  border-top: 1px solid var(--hairline);
+}
+.subblock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+.subblock-head h3 {
+  font-size: 1.0625rem;
+  color: var(--ink);
+}
+.subblock-foot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ============================ Form fields ============================ */
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  min-width: 0;
+}
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.form-hint {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+textarea.field {
+  resize: vertical;
+  min-height: 92px;
+  line-height: 1.5;
+}
+select.field {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23425466' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+/* File input — styled selector button via pseudo-element */
+.field-file {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--body);
+}
+.field-file::file-selector-button {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--research-teal-deep);
+  background: var(--surface);
+  border: 1px solid var(--border-mist);
+  border-radius: var(--r-md);
+  padding: 0.5rem 1rem;
+  margin-right: 0.85rem;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-mid) var(--ease-out-quart),
+    background-color var(--dur-mid) var(--ease-out-quart);
+}
+.field-file::file-selector-button:hover {
+  border-color: var(--research-teal-deep);
+  background: color-mix(in oklch, var(--research-teal) 8%, var(--surface));
+}
+
+/* ============================ List rows ============================ */
+.row-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+.row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-16);
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  background: var(--surface);
+}
+.row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.row-title { font-weight: 600; color: var(--ink); }
+.row-sub {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.row-actions {
+  display: flex;
+  gap: var(--space-8);
+  flex: none;
+}
+/* edit mode: row turns into a stacked form */
+.row.is-editing {
+  flex-direction: column;
+  gap: var(--space-12);
+  background: var(--surface-sunken);
+}
+.row-edit-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  width: 100%;
+}
+
+/* Add-new affordance (inline, short fields) */
+.add-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  border: 1px dashed var(--border-mist);
+  border-radius: var(--r-md);
+  background: var(--surface-sunken);
+}
+.add-row .field-group { flex: 1 1 180px; }
+
+/* ============================ Save button ============================ */
+.save-btn {
+  min-width: 156px;
+  gap: var(--space-8);
+}
+.save-btn.is-saved {
+  background: var(--research-teal-deep);
+  border-color: var(--research-teal-deep);
+}
+.spinner-sm {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border: 2px solid color-mix(in oklch, #fff 38%, transparent);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+.check-icon { width: 16px; height: 16px; flex: none; }
+
+/* dark spinner + inline "saving" note, for pages that persist on each action */
+.spinner-sm.is-dark {
+  border-color: color-mix(in oklch, var(--research-teal-deep) 22%, transparent);
+  border-top-color: var(--research-teal-deep);
+}
+.saving-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+/* ============================ Empty + alert ============================ */
+.empty {
+  text-align: center;
+  padding: 1.75rem;
+  border: 1px dashed var(--border-mist);
+  border-radius: var(--r-md);
+  background: var(--surface-sunken);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.alert {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: 0.8rem 1rem;
+  border-radius: var(--r-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+.alert-success {
+  background: var(--research-teal-wash);
+  color: var(--research-teal-deep);
+}
+.alert-error {
+  background: #fdecec;
+  color: #b3261e;
+}
+.alert-info {
+  background: var(--surface-sunken);
+  color: var(--body);
+}
+
+/* ============================ Loading skeleton ============================ */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-sunken);
+  border-radius: var(--r-sm);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklch, var(--surface) 70%, transparent),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer { to { transform: translateX(100%); } }
+
+.skel-rail { display: flex; flex-direction: column; gap: var(--space-12); }
+.skel-rail .skeleton { height: 16px; }
+.skel-panel {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-rest);
+  padding: var(--space-24);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+.skel-panel .skel-h { height: 22px; width: 40%; }
+.skel-panel .skel-line { height: 14px; }
+.skel-panel .skel-block { height: 96px; border-radius: var(--r-md); }
+
+/* ============================ Dense action buttons ============================
+   Edit / Delete / Add inside rows need a quieter, smaller vocabulary than the
+   page-level .btn-primary. Outlined neutral by default; teal on hover, red for
+   the destructive intent. Consistent across every panel. */
+.btn-quiet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1;
+  padding: 0.5rem 1rem;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border-mist);
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    border-color var(--dur-fast) var(--ease-out-quart),
+    color var(--dur-fast) var(--ease-out-quart),
+    background-color var(--dur-fast) var(--ease-out-quart);
+}
+.btn-quiet:hover {
+  border-color: var(--research-teal-deep);
+  color: var(--research-teal-deep);
+  background: color-mix(in oklch, var(--research-teal) 6%, var(--surface));
+}
+.btn-quiet.is-danger:hover {
+  border-color: #d6453f;
+  color: #d6453f;
+  background: #fdecec;
+}
+
+/* ============================ Responsive ============================ */
+@media (max-width: 880px) {
+  .dash {
+    grid-template-columns: 1fr;
+    row-gap: var(--space-24);
+  }
+  /* rail becomes a horizontal chip strip, sticky under the header */
+  .dash-rail {
+    top: 60px;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: var(--space-12) var(--gutter);
+    background: color-mix(in oklch, var(--bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--hairline);
+    z-index: 10;
+  }
+  .dash-rail-title { display: none; }
+  .dash-rail-list {
+    flex-direction: row;
+    gap: var(--space-8);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .dash-rail-list::-webkit-scrollbar { display: none; }
+  .rail-link { white-space: nowrap; flex: none; }
+}
+
+@media (max-width: 560px) {
+  .panel-head {
+    flex-direction: column;
+    gap: var(--space-16);
+  }
+  .panel-head-action { width: 100%; }
+  .save-btn { width: 100%; }
+  .row { flex-direction: column; }
+  .row-actions { width: 100%; }
+  .row-actions .btn-quiet { flex: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { animation: none; }
+}

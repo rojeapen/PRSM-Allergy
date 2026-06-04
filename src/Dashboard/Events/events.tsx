@@ -2,6 +2,12 @@ import { StrictMode, useEffect, useMemo, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import '../../index.css'
 import "./events.css"
+import {
+    Panel,
+    Field,
+    EmptyState,
+    DashboardSkeleton,
+} from '../shell'
 import Header from '../../components/header'
 import { isUserLoggedIn } from '../../api/auth'
 import { Event, PRSM } from '../../constants'
@@ -165,7 +171,6 @@ function ImageAdjuster({ src, posX, posY, zoom, onChange, onReset }: {
 function App() {
     const [prsm, setPrsm] = useState<PRSM | null>(null)
     const [events, setEvents] = useState<EventEdit[]>([])
-    const [canSave, setCanSave] = useState(false)
     const [loadingSave, setLoadingSave] = useState(false)
     const [newEvent, setNewEvent] = useState<EventEdit>(new EventEdit({
         title: '',
@@ -215,9 +220,10 @@ function App() {
         });
     }, [])
 
-    const handleAddEvent = () => {
+    const handleAddEvent = async () => {
         if (!newEvent.title.trim() || !newEvent.description.trim() || !newEvent.date.trim() || !newEvent.time.trim() || !newEvent.location.trim()) return;
-        setEvents([...events, new EventEdit({ ...newEvent })]);
+        const updated = [...events, new EventEdit({ ...newEvent })];
+        setEvents(updated);
         setNewEvent(new EventEdit({
             title: '',
             description: '',
@@ -226,7 +232,8 @@ function App() {
             time: '',
             location: '',
         }));
-        setCanSave(true);
+        // Persist immediately so a newly added event goes live without a separate save step.
+        await persistEvents(updated);
     };
 
     const handleEditEvent = (idx: number) => {
@@ -249,14 +256,12 @@ function App() {
     const handleEditEventAdjust = (vals: { posX: number; posY: number; zoom: number }) => {
         if (editingEvent) {
             setEditingEvent(new EventEdit({ ...editingEvent, photoPosX: vals.posX, photoPosY: vals.posY, photoZoom: vals.zoom }));
-            setCanSave(true);
         }
     };
 
     const handleResetEventAdjust = () => {
         if (editingEvent) {
             setEditingEvent(new EventEdit({ ...editingEvent, photoPosX: 50, photoPosY: 50, photoZoom: 1 }));
-            setCanSave(true);
         }
     };
 
@@ -276,13 +281,15 @@ function App() {
         setEditingEvent(null);
     };
 
-    const handleDeleteEvent = (idx: number) => {
-        setEvents(events.filter((_, i) => i !== idx));
-        setCanSave(true);
+    const handleDeleteEvent = async (idx: number) => {
+        const updated = events.filter((_, i) => i !== idx);
+        setEvents(updated);
         if (editingIdx === idx) {
             setEditingIdx(null);
             setEditingEvent(null);
         }
+        // Persist immediately so removing an event takes effect without a separate save step.
+        await persistEvents(updated);
     };
 
     // Uploads any new photos, writes the full events list to Firebase, and syncs local state.
@@ -341,190 +348,202 @@ function App() {
         prsm.events = uploadedEvents;
         await updatePRSM(prsm);
         setEvents(syncedEdits);
-        setCanSave(false);
         setLoadingSave(false);
         setPrsm(PRSM.fromMap(prsm.toMap()));
     };
 
-    const saveEvents = async () => {
-        // Capture any in-progress edit so unsaved pan/zoom/field changes aren't lost
-        // if "Save Changes" is clicked while a row is still being edited.
-        const eventsToSave = (editingIdx !== null && editingEvent)
-            ? events.map((e, i) => (i === editingIdx ? new EventEdit({ ...editingEvent }) : e))
-            : events;
-        await persistEvents(eventsToSave);
-    };
+    const fmtTime = (time: string) =>
+        new Event({ title: '', description: '', date: '', displayDate: '', time, location: '', photoUrl: '' }).getFormattedTime();
 
     return (
         <>
             <Header isDashboardEventsPage={true} />
-            {prsm ? (
-                <>
-                    <section className={`dashboard-section light`}>
-                        <div className='section-title'>
-                            <h1>Events</h1>
-                            <p>Manage events shown on the main website.</p>
-                        </div>
-                        <div className='events-dashboard-content'>
-                            <div className='events-dashboard-list'>
-                                {events.length === 0 && <div>No events yet.</div>}
-                                {events.map((event, idx) => (
-                                    <div className='events-dashboard-item' key={idx}>
-                                        {editingIdx === idx ? (
-                                            <>
-                                                <div className='event-form-group'>
-                                                    <label>Title:</label>
-                                                    <input
-                                                        type='text'
-                                                        className='input-light'
-                                                        value={editingEvent?.title || ''}
-                                                        onChange={e => handleEditEventField('title', e.target.value)}
-                                                    />
-                                                </div>
-                                                <div className='event-form-group'>
-                                                    <label>Description:</label>
-                                                    <textarea
-                                                        className='input-light'
-                                                        value={editingEvent?.description || ''}
-                                                        onChange={e => handleEditEventField('description', e.target.value)}
-                                                    />
-                                                </div>
-                                                <div className='event-form-group'>
-                                                    <label>Date:</label>
-                                                    <input
-                                                        type='date'
-                                                        className='input-light'
-                                                        value={editingEvent?.date || ''}
-                                                        onChange={e => handleEditEventField('date', e.target.value)}
-                                                    />
-                                                </div>
+            <main className="dash is-solo">
+                <div className="dash-head">
+                    <p className="kicker">Site content</p>
+                    <h1>Events</h1>
+                    <p className="dash-head-sub">
+                        Events shown on the homepage and the public events page. Photos use a
+                        16:9 frame; drag to set exactly what stays in view. Changes save as
+                        you add, edit, or remove them.
+                    </p>
+                </div>
 
-                                                <div className='event-form-group'>
-                                                    <label>Time:</label>
-                                                    <input
-                                                        type='time'
-                                                        className='input-light'
-                                                        value={editingEvent?.time || ''}
-                                                        onChange={e => handleEditEventField('time', e.target.value)}
-                                                    />
-                                                </div>
-                                                <div className='event-form-group'>
-                                                    <label>Location:</label>
-                                                    <input
-                                                        type='text'
-                                                        className='input-light'
-                                                        value={editingEvent?.location || ''}
-                                                        onChange={e => handleEditEventField('location', e.target.value)}
-                                                    />
-                                                </div>
-                                                <div className='event-form-group'>
-                                                    <label>Photo:</label>
-                                                    <input
-                                                        type='file'
-                                                        className='input-light'
-                                                        onChange={(e) => {
-                                                            if (e.target.files && e.target.files[0]) {
-                                                                handleEditEventPhoto(e.target.files[0]);
-                                                            }
-                                                        }}
-                                                    />
-                                                    {(editingEvent?.photoFile || editingEvent?.photoUrl) && (
-                                                        <ImageAdjuster
-                                                            src={editingPhotoSrc}
-                                                            posX={editingEvent.photoPosX}
-                                                            posY={editingEvent.photoPosY}
-                                                            zoom={editingEvent.photoZoom}
-                                                            onChange={handleEditEventAdjust}
-                                                            onReset={handleResetEventAdjust}
+                {!prsm ? (
+                    <DashboardSkeleton sections={[{ id: 'events', label: 'Events' }]} panels={1} rail={false} />
+                ) : (
+                    <div className="dash-main">
+                        <Panel
+                            id="events"
+                            title="Events"
+                            desc="Add, edit, or remove events. Changes save immediately."
+                            action={
+                                loadingSave ? (
+                                    <span className="saving-inline">
+                                        <span className="spinner-sm is-dark" aria-hidden="true" />
+                                        Saving…
+                                    </span>
+                                ) : undefined
+                            }
+                        >
+                            {events.length === 0 ? (
+                                <EmptyState>No events yet. Add your first one below, then save.</EmptyState>
+                            ) : (
+                                <div className="ev-list">
+                                    {events.map((event, idx) =>
+                                        editingIdx === idx ? (
+                                            <div className="ev-item is-editing" key={idx}>
+                                                <div className="ev-edit-fields">
+                                                    <Field label="Title">
+                                                        <input
+                                                            type="text"
+                                                            className="field"
+                                                            value={editingEvent?.title || ''}
+                                                            onChange={e => handleEditEventField('title', e.target.value)}
                                                         />
-                                                    )}
+                                                    </Field>
+                                                    <Field label="Description">
+                                                        <textarea
+                                                            className="field"
+                                                            value={editingEvent?.description || ''}
+                                                            onChange={e => handleEditEventField('description', e.target.value)}
+                                                        />
+                                                    </Field>
+                                                    <div className="ev-add-grid">
+                                                        <Field label="Date">
+                                                            <input
+                                                                type="date"
+                                                                className="field"
+                                                                value={editingEvent?.date || ''}
+                                                                onChange={e => handleEditEventField('date', e.target.value)}
+                                                            />
+                                                        </Field>
+                                                        <Field label="Time">
+                                                            <input
+                                                                type="time"
+                                                                className="field"
+                                                                value={editingEvent?.time || ''}
+                                                                onChange={e => handleEditEventField('time', e.target.value)}
+                                                            />
+                                                        </Field>
+                                                    </div>
+                                                    <Field label="Location">
+                                                        <input
+                                                            type="text"
+                                                            className="field"
+                                                            value={editingEvent?.location || ''}
+                                                            onChange={e => handleEditEventField('location', e.target.value)}
+                                                        />
+                                                    </Field>
+                                                    <Field label="Photo">
+                                                        <input
+                                                            type="file"
+                                                            className="field-file"
+                                                            accept="image/*"
+                                                            onChange={(e) => {
+                                                                if (e.target.files && e.target.files[0]) {
+                                                                    handleEditEventPhoto(e.target.files[0]);
+                                                                }
+                                                            }}
+                                                        />
+                                                        {(editingEvent?.photoFile || editingEvent?.photoUrl) && (
+                                                            <ImageAdjuster
+                                                                src={editingPhotoSrc}
+                                                                posX={editingEvent.photoPosX}
+                                                                posY={editingEvent.photoPosY}
+                                                                zoom={editingEvent.photoZoom}
+                                                                onChange={handleEditEventAdjust}
+                                                                onReset={handleResetEventAdjust}
+                                                            />
+                                                        )}
+                                                    </Field>
                                                 </div>
-                                                <div className='events-dashboard-actions'>
-                                                    <button className='btn-primary' onClick={() => handleSaveEvent(idx)}>Save</button>
-                                                    <button className='btn-danger' onClick={handleCancelEditEvent}>Cancel</button>
+                                                <div className="row-actions">
+                                                    <button className="btn-quiet" onClick={() => handleSaveEvent(idx)}>Save</button>
+                                                    <button className="btn-quiet" onClick={handleCancelEditEvent}>Cancel</button>
                                                 </div>
-                                            </>
+                                            </div>
                                         ) : (
-                                            <>
-                                                <div className='events-dashboard-item-preview'>
+                                            <div className="ev-item" key={idx}>
+                                                <div className="ev-main">
                                                     <img
                                                         src={event.photoFile != undefined ? URL.createObjectURL(event.photoFile) : event.photoUrl ? event.photoUrl : ''}
                                                         alt={event.title}
-                                                        className='events-dashboard-thumbnail'
-                                                        style={{ objectPosition: `${event.photoPosX}% ${event.photoPosY}%` }}
+                                                        className="ev-thumb"
+                                                        style={{
+                                                            objectPosition: `${event.photoPosX}% ${event.photoPosY}%`,
+                                                            transform: `scale(${event.photoZoom})`,
+                                                            transformOrigin: `${event.photoPosX}% ${event.photoPosY}%`,
+                                                        }}
                                                     />
-                                                    <div className='events-dashboard-item-info'>
-                                                        <h4>{event.title}</h4>
-                                                        <p className='event-date-time'>📅 {event.date} • 🕐 {new Event({ title: '', description: '', date: '', displayDate: '', time: event.time, location: '', photoUrl: '' }).getFormattedTime()}</p>
-                                                        <p className='event-location'>📍 {event.location}</p>
-                                                        <p>{event.description}</p>
+                                                    <div className="ev-info">
+                                                        <span className="row-title">{event.title}</span>
+                                                        <span className="ev-meta">{event.date} · {fmtTime(event.time)}</span>
+                                                        <span className="ev-meta">{event.location}</span>
+                                                        <span className="ev-desc">{event.description}</span>
                                                     </div>
                                                 </div>
-                                                <div className='events-dashboard-actions'>
-                                                    <button className='btn-primary' onClick={() => handleEditEvent(idx)}>Edit</button>
-                                                    <button className='btn-danger' onClick={() => handleDeleteEvent(idx)}>Delete</button>
+                                                <div className="row-actions">
+                                                    <button className="btn-quiet" onClick={() => handleEditEvent(idx)}>Edit</button>
+                                                    <button className="btn-quiet is-danger" onClick={() => handleDeleteEvent(idx)}>Delete</button>
                                                 </div>
-                                            </>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+                            )}
 
-                            <div className='events-dashboard-add'>
-                                <h3 style={{ margin: '0 0 1rem 0' }}>Add New Event</h3>
-                                <div className='event-form-group'>
-                                    <label>Title:</label>
+                            <div className="ev-add">
+                                <h3 className="ev-add-title">Add event</h3>
+                                <Field label="Title">
                                     <input
-                                        type='text'
-                                        className='input-light'
-                                        placeholder='Event title'
+                                        type="text"
+                                        className="field"
+                                        placeholder="Event title"
                                         value={newEvent.title}
                                         onChange={e => setNewEvent(new EventEdit({ ...newEvent, title: e.target.value }))}
                                     />
-                                </div>
-                                <div className='event-form-group'>
-                                    <label>Description:</label>
+                                </Field>
+                                <Field label="Description">
                                     <textarea
-                                        className='input-light'
-                                        placeholder='Event description'
+                                        className="field"
+                                        placeholder="What's happening, and who it's for"
                                         value={newEvent.description}
                                         onChange={e => setNewEvent(new EventEdit({ ...newEvent, description: e.target.value }))}
                                     />
+                                </Field>
+                                <div className="ev-add-grid">
+                                    <Field label="Date">
+                                        <input
+                                            type="date"
+                                            className="field"
+                                            value={newEvent.date}
+                                            onChange={e => setNewEvent(new EventEdit({ ...newEvent, date: e.target.value }))}
+                                        />
+                                    </Field>
+                                    <Field label="Time">
+                                        <input
+                                            type="time"
+                                            className="field"
+                                            value={newEvent.time}
+                                            onChange={e => setNewEvent(new EventEdit({ ...newEvent, time: e.target.value }))}
+                                        />
+                                    </Field>
                                 </div>
-                                <div className='event-form-group'>
-                                    <label>Date:</label>
+                                <Field label="Location">
                                     <input
-                                        type='date'
-                                        className='input-light'
-                                        value={newEvent.date}
-                                        onChange={e => setNewEvent(new EventEdit({ ...newEvent, date: e.target.value }))}
-                                    />
-                                </div>
-
-                                <div className='event-form-group'>
-                                    <label>Time:</label>
-                                    <input
-                                        type='time'
-                                        className='input-light'
-                                        value={newEvent.time}
-                                        onChange={e => setNewEvent(new EventEdit({ ...newEvent, time: e.target.value }))}
-                                    />
-                                </div>
-                                <div className='event-form-group'>
-                                    <label>Location:</label>
-                                    <input
-                                        type='text'
-                                        className='input-light'
-                                        placeholder='Event location'
+                                        type="text"
+                                        className="field"
+                                        placeholder="Venue or address"
                                         value={newEvent.location}
                                         onChange={e => setNewEvent(new EventEdit({ ...newEvent, location: e.target.value }))}
                                     />
-                                </div>
-                                <div className='event-form-group'>
-                                    <label>Photo:</label>
+                                </Field>
+                                <Field label="Photo">
                                     <input
-                                        type='file'
-                                        className='input-light'
+                                        type="file"
+                                        className="field-file"
+                                        accept="image/*"
                                         onChange={(e) => {
                                             if (e.target.files && e.target.files[0]) {
                                                 setNewEvent(new EventEdit({ ...newEvent, photoFile: e.target.files[0] }));
@@ -532,21 +551,17 @@ function App() {
                                         }}
                                     />
                                     {newEvent.photoFile && (
-                                        <img src={URL.createObjectURL(newEvent.photoFile)} alt="Preview" className='events-dashboard-thumbnail' />
+                                        <img src={URL.createObjectURL(newEvent.photoFile)} alt="Preview" className="ev-thumb" />
                                     )}
+                                </Field>
+                                <div>
+                                    <button className="btn-quiet" onClick={handleAddEvent}>Add event</button>
                                 </div>
-                                <button className='btn-primary' onClick={handleAddEvent}>Add Event</button>
                             </div>
-
-                            {canSave && !loadingSave &&
-                                <button className='btn-primary' onClick={saveEvents}>Save Changes</button>}
-                            {loadingSave && <div className='loader'></div>}
-                        </div>
-                    </section>
-                </>
-            ) : (
-                <div className='loader-container'><div className='loader'></div></div>
-            )}
+                        </Panel>
+                    </div>
+                )}
+            </main>
         </>
     )
 }

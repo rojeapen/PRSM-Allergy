@@ -1,161 +1,137 @@
 .events {
-    padding-left: 3rem;
-    padding-right: 3rem;
-    padding-top: 1rem;
-    padding-bottom: 2rem;
-    background: var(--primary-light);
+  /* the teal-wash band, flat — meets the fundraiser's bottom stop exactly */
+  background: var(--descent-band);
 }
 
-body:has(.latest-fundraiser) .events {
-    background: white !important;
+.events-shell {
+  position: relative;
+  z-index: 1;
 }
 
-
-.events-container {
-    max-width: 1200px;
-    margin: 0 auto;
+.events-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  max-width: 56ch;
+  margin-bottom: clamp(2rem, 1.2rem + 2.5vw, 3rem);
+}
+.events-title {
+  font-size: var(--text-h2);
+  letter-spacing: -0.015em;
 }
 
-.events h3 {
-    font-size: 1.75rem;
-    font-weight: bold;
-    margin-bottom: 0.75rem;
-    color: black;
+.agenda {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
 }
 
-.events-description {
-    font-size: 1rem;
-    color: #666;
-    margin-bottom: 2rem;
+.event-row {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(140px, 200px) 1fr auto;
+  align-items: center;
+  gap: clamp(1rem, 0.5rem + 2vw, 2.5rem);
+  padding: clamp(1.25rem, 0.9rem + 1.2vw, 1.9rem) clamp(1.25rem, 0.9rem + 1.5vw, 2rem);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  text-decoration: none;
+  box-shadow: var(--shadow-rest);
+  overflow: hidden;
+  transition: transform var(--dur-mid) var(--ease-out-quart), box-shadow var(--dur-mid) var(--ease-out-quart);
 }
 
-.events-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+/* Conviction hover: Foundation Blue covers the row, text inverts */
+.event-row::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(120deg, var(--foundation-blue) 0%, var(--foundation-blue-deep) 100%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-mid) var(--ease-out-expo);
+}
+.event-row:hover,
+.event-row:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+}
+.event-row:hover::before,
+.event-row:focus-visible::before { transform: scaleX(1); }
+.event-row:hover .event-when time,
+.event-row:focus-visible .event-when time { color: var(--on-dark); }
+.event-row:hover .event-title,
+.event-row:focus-visible .event-title { color: #fff; }
+.event-row:hover .event-meta,
+.event-row:focus-visible .event-meta { color: var(--on-dark-soft); }
+.event-row:hover .event-go,
+.event-row:focus-visible .event-go { color: #fff; transform: translateX(4px); }
+
+.event-when {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+.event-when-marker {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  rotate: 45deg;
+  background: var(--research-teal);
+  box-shadow: 0 0 0 4px color-mix(in oklch, var(--research-teal) 16%, transparent);
+}
+.event-when time {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--research-teal-deep);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--dur-mid) var(--ease-out-quart);
 }
 
-.event-card {
-    padding: 2rem;
-    background: #f9f9f9;
-    border-radius: 8px;
-    border-left: 4px solid var(--primary, #0A6C95);
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    margin-bottom: 4px;
+.event-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
-
-.event-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 0;
-    height: 100%;
-    background: var(--primary, #0A6C95);
-    border-radius: 8px;
-    z-index: 0;
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    pointer-events: none;
-}
-
-.event-card:hover::before {
-    width: 100%;
-}
-
-.all-events {
-    text-align: center;
-    display: block;
-    margin: 0 auto 0 auto;
-}
-
-.event-date,
-.event-title,
-.event-location {
-    position: relative;
-    z-index: 1;
-}
-
-.event-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 16px rgba(10, 108, 149, 0.15);
-    background-color: var(--primary, #0A6C95);
-
-}
-
-.event-card:hover .event-date {
-    color: rgba(255, 255, 255, 0.9);
-}
-
-.event-card:hover .event-title {
-    color: white;
-}
-
-.event-card:hover .event-location {
-    color: rgba(255, 255, 255, 0.85);
-}
-
-.event-date {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--primary, #0A6C95);
-    letter-spacing: 0.05em;
-}
-
 .event-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: black;
-    margin: 0;
+  font-size: var(--text-h3);
+  font-weight: 700;
+  line-height: 1.2;
+  transition: color var(--dur-mid) var(--ease-out-quart);
+}
+.event-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-8);
+  font-size: var(--text-sm);
+  color: var(--muted);
+  transition: color var(--dur-mid) var(--ease-out-quart);
+}
+.event-dot { opacity: 0.6; }
+
+.event-go {
+  font-size: 1.4rem;
+  color: var(--research-teal-deep);
+  transition: color var(--dur-mid) var(--ease-out-quart), transform var(--dur-mid) var(--ease-out-expo);
 }
 
-.event-location {
-    font-size: 0.95rem;
-    color: #666;
-    margin: 0;
+.events-cta {
+  margin-top: clamp(2rem, 1.2rem + 2vw, 3rem);
 }
 
-@media only screen and (max-width: 768px) {
-    .events {
-        padding: 2rem 1rem;
-    }
-
-    .events h3 {
-        font-size: 1.5rem;
-    }
-
-    .events-description {
-        font-size: 0.95rem;
-    }
-
-    .events-grid {
-        gap: 1.5rem;
-    }
-
-    .event-card {
-        padding: 1.5rem;
-    }
-
-    .event-title {
-        font-size: 1.1rem;
-    }
-}
-
-@media only screen and (max-width: 480px) {
-    .events-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .event-card {
-        padding: 1.25rem;
-    }
-
-    .event-title {
-        font-size: 1rem;
-    }
+@media (max-width: 680px) {
+  .event-row {
+    grid-template-columns: 1fr auto;
+    gap: var(--space-12);
+    row-gap: var(--space-12);
+  }
+  .event-when { grid-column: 1 / -1; }
+  .event-go { grid-row: 2; }
 }
