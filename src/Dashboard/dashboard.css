@@ -261,3 +261,30 @@
   flex-direction: column;
   gap: var(--space-12);
 }
+
+/* ============================ Subscribers panel ============================ */
+.subs-loading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  padding: var(--space-8) 0;
+}
+.subs-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.subs-row {
+  align-items: center;
+  justify-content: flex-start;
+}
+.subs-index {
+  flex: none;
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}

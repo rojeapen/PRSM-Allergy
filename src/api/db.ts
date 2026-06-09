@@ -279,3 +279,20 @@ export async function getSubscribers(): Promise<string[]> {
     const snapshot = await getDocs(collection(db, "subscribers"));
     return snapshot.docs.map(d => d.data().email as string);
 }
+
+export interface Subscriber {
+    email: string;
+    subscribedAt: string;
+}
+
+// Full subscriber records (email + sign-up date), newest first. Entries saved
+// before subscribedAt existed sort to the end.
+export async function getSubscribersDetailed(): Promise<Subscriber[]> {
+    const snapshot = await getDocs(collection(db, "subscribers"));
+    const subs = snapshot.docs.map(d => ({
+        email: d.data().email as string,
+        subscribedAt: (d.data().subscribedAt as string) ?? "",
+    }));
+    subs.sort((a, b) => (b.subscribedAt || "").localeCompare(a.subscribedAt || ""));
+    return subs;
+}

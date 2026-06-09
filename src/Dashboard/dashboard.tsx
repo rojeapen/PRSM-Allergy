@@ -37,9 +37,11 @@ import {
   deletePhoto,
   getArticlesFresh,
   getSubscribers,
+  getSubscribersDetailed,
   getPRSMFresh,
   updatePRSM,
   uploadPhoto,
+  type Subscriber,
 } from "../api/db";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { app } from "../api/firebase";
@@ -79,6 +81,7 @@ const SECTIONS: Section[] = [
   { id: "contact", label: "Contact" },
   { id: "footer", label: "Footer" },
   { id: "socials", label: "Social links" },
+  { id: "subscribers", label: "Subscribers" },
   { id: "newsletter", label: "Send newsletter" },
 ];
 
@@ -156,6 +159,10 @@ function App() {
   const [excludedEventIdxs, setExcludedEventIdxs] = useState<Set<number>>(
     new Set(),
   );
+
+  // Subscribers list (null = still loading)
+  const [subscribers, setSubscribers] = useState<Subscriber[] | null>(null);
+  const [copiedEmails, setCopiedEmails] = useState(false);
 
   // About section state
   const [aboutSubtitle, setAboutSubtitle] = useState("");
@@ -248,6 +255,9 @@ function App() {
     getArticlesFresh().then((data) => {
       setArticles(data);
     });
+    getSubscribersDetailed()
+      .then(setSubscribers)
+      .catch(() => setSubscribers([]));
   }, []);
 
   // About subtitle handlers
@@ -550,6 +560,30 @@ function App() {
     setCanSaveSocials(false);
     setLoadingSaveSocials(false);
     setPrsm(PRSM.fromMap(prsm!.toMap()));
+  };
+
+  const fmtDate = (iso: string) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const handleCopyEmails = async () => {
+    if (!subscribers || subscribers.length === 0) return;
+    try {
+      await navigator.clipboard.writeText(
+        subscribers.map((s) => s.email).join(", "),
+      );
+      setCopiedEmails(true);
+      setTimeout(() => setCopiedEmails(false), 1800);
+    } catch (error) {
+      console.error("Could not copy emails:", error);
+    }
   };
 
   const fmtTime = (time: string) => {
@@ -1448,6 +1482,59 @@ function App() {
                     Add link
                   </button>
                 </div>
+              </Panel>
+
+              {/* ---- Subscribers ---- */}
+              <Panel
+                id="subscribers"
+                title="Newsletter subscribers"
+                desc={
+                  subscribers === null
+                    ? "Everyone who has signed up to receive the newsletter."
+                    : `${subscribers.length} ${
+                        subscribers.length === 1 ? "person has" : "people have"
+                      } signed up to receive the newsletter.`
+                }
+                action={
+                  subscribers && subscribers.length > 0 ? (
+                    <button className="btn-quiet" onClick={handleCopyEmails}>
+                      {copiedEmails ? "Copied" : "Copy emails"}
+                    </button>
+                  ) : undefined
+                }
+              >
+                {subscribers === null ? (
+                  <div className="subs-loading" role="status" aria-live="polite">
+                    <span className="spinner-sm" aria-hidden="true" />
+                    Loading subscribers…
+                  </div>
+                ) : subscribers.length === 0 ? (
+                  <EmptyState>
+                    No subscribers yet. Sign-ups from the newsletter form will
+                    appear here.
+                  </EmptyState>
+                ) : (
+                  <ol
+                    className="row-list subs-list"
+                    aria-label="Newsletter subscribers"
+                  >
+                    {subscribers.map((sub, idx) => (
+                      <li className="row subs-row" key={`${sub.email}-${idx}`}>
+                        <span className="subs-index" aria-hidden="true">
+                          {String(idx + 1).padStart(2, "0")}
+                        </span>
+                        <div className="row-info">
+                          <span className="row-title">{sub.email}</span>
+                          {fmtDate(sub.subscribedAt) && (
+                            <span className="row-sub">
+                              Subscribed {fmtDate(sub.subscribedAt)}
+                            </span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                )}
               </Panel>
 
               {/* ---- Newsletter ---- */}

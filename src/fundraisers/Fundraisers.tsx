@@ -122,9 +122,6 @@ function Fundraisers() {
                       rel="noopener noreferrer"
                     >
                       Donate to this cause
-                      <span className="btn-arrow" aria-hidden="true">
-                        ↗
-                      </span>
                     </a>
                   </Reveal>
                 </div>

@@ -21,6 +21,7 @@ export default defineConfig({
         fundraisers: resolve(root, 'Fundraisers', 'index.html'),
         events: resolve(root, 'Events', 'index.html'),
         team: resolve(root, 'Team', 'index.html'),
+        newsletter: resolve(root, 'Newsletter', 'index.html'),
         login: resolve(root, 'Auth', 'Login', 'index.html'),
         signup: resolve(root, 'Auth', 'Signup', 'index.html'),
         dashboard: resolve(root, 'Dashboard', 'index.html'),

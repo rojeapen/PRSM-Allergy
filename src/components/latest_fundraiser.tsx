@@ -27,7 +27,7 @@ function LatestFundraiser({ featuredFundraiser, kicker }: { featuredFundraiser: 
                             onClick={() => window.open(featuredFundraiser.link, '_blank', 'noopener,noreferrer')}
                         >
                             Donate to this cause
-                            <span className="btn-arrow" aria-hidden="true">↗</span>
+                            
                         </button>
                         <button
                             className="btn-link"
