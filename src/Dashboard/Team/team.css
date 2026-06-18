@@ -32,7 +32,7 @@
   width: 56px;
   height: 56px;
   flex: none;
-  border-radius: var(--r-pill);
+  border-radius: var(--r-lg);
   object-fit: cover;
   background: var(--surface-sunken);
   border: 1px solid var(--hairline);
@@ -98,7 +98,7 @@
 .member-thumb {
   width: 96px;
   height: 96px;
-  border-radius: var(--r-pill);
+  border-radius: var(--r-lg);
   object-fit: cover;
   border: 1px solid var(--hairline);
   background: var(--surface-sunken);
@@ -120,7 +120,7 @@
   font-size: var(--text-sm);
 }
 .photo-cropper-viewport {
-  border-radius: var(--r-pill);
+  border-radius: var(--r-lg);
   overflow: hidden;
   position: relative;
   background: var(--surface-sunken);

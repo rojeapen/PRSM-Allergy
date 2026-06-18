@@ -122,9 +122,6 @@ function Team() {
                   >
                     <MemberPortrait member={member} />
                     <div className="member-meta">
-                      <span className="member-index" aria-hidden="true">
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
                       {member.role && (
                         <span className="member-role">{member.role}</span>
                       )}

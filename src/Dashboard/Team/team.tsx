@@ -206,7 +206,7 @@ function App() {
     }, [])
 
     const handleAddMember = async () => {
-        if (!newMember.name.trim() || !newMember.description.trim()) return;
+        if (!newMember.name.trim()) return;
         const updated = [...teamMembers, new TeamMemberEdit({ ...newMember })];
         setTeamMembers(updated);
         setNewMember(new TeamMemberEdit({ name: '', description: '', role: '' }));
