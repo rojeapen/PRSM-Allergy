@@ -12,6 +12,7 @@ export default defineConfig({
   plugins: [react()],
   base: '/',
   root,
+  publicDir: resolve(__dirname, 'public'),
   build: {
     outDir,
     emptyOutDir: true,
@@ -32,6 +33,7 @@ export default defineConfig({
         articles: resolve(root, 'Articles', 'index.html'),
         articleDetail: resolve(root, 'Articles', 'detail.html'),
         eventDetail: resolve(root, 'Events', 'detail.html'),
+        waiver: resolve(root, 'Waiver', 'index.html'),
       }
     }
   }

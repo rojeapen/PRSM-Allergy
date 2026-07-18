@@ -1,0 +1,88 @@
+/* A compact trust bar, not a full section — sits between the hero and
+   whatever follows, framed with its own tonal band (Pale Horizon Rule: the
+   band itself is never pure white) so it reads as a definite strip rather
+   than empty space. Logos sit in elevated chips, echoing the hero-frame /
+   gallery-track "framed image" language already used elsewhere. */
+.sponsor-strip {
+  position: relative;
+  padding-block: clamp(2rem, 1.5rem + 1.5vw, 3rem);
+  padding-inline: var(--gutter);
+  background: var(--surface-sunken);
+  border-block: 1px solid var(--hairline);
+}
+
+.sponsor-strip-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(1.25rem, 0.75rem + 1.5vw, 2.5rem);
+}
+
+.sponsor-strip-label {
+  flex: none;
+}
+.sponsor-strip-label .kicker {
+  white-space: nowrap;
+}
+
+.sponsor-strip-divider {
+  flex: none;
+  width: 1px;
+  height: 30px;
+  background: var(--border-mist);
+}
+
+.sponsor-strip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(0.75rem, 0.5rem + 0.8vw, 1.25rem);
+  flex: 1 1 320px;
+  min-width: 0;
+}
+
+.sponsor-chip {
+  display: grid;
+  place-items: center;
+  padding: clamp(0.75rem, 0.55rem + 0.5vw, 1.05rem)
+    clamp(1.15rem, 0.85rem + 0.8vw, 1.65rem);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-rest);
+  transition:
+    box-shadow var(--dur-mid) var(--ease-out-quart),
+    transform var(--dur-mid) var(--ease-out-quart);
+}
+.sponsor-chip:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.sponsor-logo {
+  height: clamp(40px, 1.7rem + 2.2vw, 68px);
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  filter: grayscale(1);
+  opacity: 0.75;
+  transition:
+    filter var(--dur-mid) var(--ease-out-quart),
+    opacity var(--dur-mid) var(--ease-out-quart);
+}
+.sponsor-chip:hover .sponsor-logo {
+  filter: grayscale(0);
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .sponsor-strip-divider {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sponsor-chip,
+  .sponsor-logo {
+    transition: none;
+  }
+}

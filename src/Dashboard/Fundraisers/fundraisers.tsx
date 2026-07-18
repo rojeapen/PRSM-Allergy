@@ -4,7 +4,7 @@ import '../../index.css'
 import "./Fundraisers.css"
 import Header from '../../components/header'
 import { isUserLoggedIn } from '../../api/auth'
-import { Fundraiser, PRSM } from '../../constants'
+import { DEFAULT_COPY, Fundraiser, PRSM } from '../../constants'
 import { getPRSMFresh, updatePRSM, uploadPhoto, deletePhoto } from '../../api/db'
 import { Photo } from '../../constants'
 import {
@@ -27,6 +27,7 @@ createRoot(document.getElementById('root')!).render(
 const SECTIONS: Section[] = [
     { id: 'subtitle', label: 'Subtitle' },
     { id: 'fundraisers', label: 'Fundraisers' },
+    { id: 'pledge', label: 'Pledge banner' },
 ]
 
 class FundraiserEdit {
@@ -61,13 +62,19 @@ function App() {
     const [subtitle, setSubtitle] = useState('')
     const [canSaveSubtitle, setCanSaveSubtitle] = useState(false)
     const [loadingSaveSubtitle, setLoadingSaveSubtitle] = useState(false)
+    const [pledgeTitle, setPledgeTitle] = useState('')
+    const [pledgeText, setPledgeText] = useState('')
+    const [canSavePledge, setCanSavePledge] = useState(false)
+    const [loadingSavePledge, setLoadingSavePledge] = useState(false)
 
     const { activeSection, goToSection } = useDashboardRail(SECTIONS, !!prsm)
 
     useEffect(() => {
-        isUserLoggedIn((isLoggedIn) => { });
+        isUserLoggedIn(() => { });
         getPRSMFresh().then((data) => {
             setSubtitle(data!.fundraisersSubtitle || '');
+            setPledgeTitle(data!.fundraiserPledgeTitle || DEFAULT_COPY.fundraiserPledgeTitle);
+            setPledgeText(data!.fundraiserPledgeText || DEFAULT_COPY.fundraiserPledgeText);
             const fundraisersList = data!.fundraisers.map((fundraiser, idx) => {
                 return new FundraiserEdit({
                     name: fundraiser.name,
@@ -166,6 +173,27 @@ function App() {
         await updatePRSM(prsm);
         setCanSaveSubtitle(false);
         setLoadingSaveSubtitle(false);
+        setPrsm(PRSM.fromMap(prsm.toMap()));
+    };
+
+    const handlePledgeTitleChange = (val: string) => {
+        setPledgeTitle(val);
+        setCanSavePledge(true);
+    };
+
+    const handlePledgeTextChange = (val: string) => {
+        setPledgeText(val);
+        setCanSavePledge(true);
+    };
+
+    const savePledge = async () => {
+        if (!prsm) return;
+        setLoadingSavePledge(true);
+        prsm.fundraiserPledgeTitle = pledgeTitle;
+        prsm.fundraiserPledgeText = pledgeText;
+        await updatePRSM(prsm);
+        setCanSavePledge(false);
+        setLoadingSavePledge(false);
         setPrsm(PRSM.fromMap(prsm.toMap()));
     };
 
@@ -436,6 +464,39 @@ function App() {
                                         <button className="btn-quiet" onClick={handleAddFundraiser}>Add fundraiser</button>
                                     </div>
                                 </div>
+                            </Panel>
+
+                            <Panel
+                                id="pledge"
+                                title="Pledge banner"
+                                desc='The "Our promise" banner shown at the bottom of the fundraising page.'
+                                action={
+                                    <SaveButton
+                                        dirty={canSavePledge}
+                                        loading={loadingSavePledge}
+                                        onClick={savePledge}
+                                        label="Save banner"
+                                    />
+                                }
+                            >
+                                <Field label="Title" htmlFor="fr-pledge-title">
+                                    <input
+                                        id="fr-pledge-title"
+                                        type="text"
+                                        className="field"
+                                        value={pledgeTitle}
+                                        onChange={e => handlePledgeTitleChange(e.target.value)}
+                                    />
+                                </Field>
+                                <Field label="Text" htmlFor="fr-pledge-text">
+                                    <textarea
+                                        id="fr-pledge-text"
+                                        className="field"
+                                        rows={3}
+                                        value={pledgeText}
+                                        onChange={e => handlePledgeTextChange(e.target.value)}
+                                    />
+                                </Field>
                             </Panel>
                         </div>
                     </>

@@ -6,7 +6,7 @@ import "../index.css";
 import Header from "../components/header";
 
 import FundraiserCard from "../components/fundraiser_tile";
-import { ORIGIN, PRSM } from "../constants";
+import { DEFAULT_COPY, ORIGIN, PRSM } from "../constants";
 import Footer from "../components/footer";
 import Reveal from "../components/reveal";
 import { getPRSM } from "../api/db";
@@ -164,12 +164,12 @@ function Fundraisers() {
             <Reveal className="fund-pledge-copy">
               <p className="kicker">Our promise</p>
               <h2 id="fund-pledge-title" className="fund-pledge-title">
-                Every dollar reaches the research.
+                {prsm.fundraiserPledgeTitle?.trim() ||
+                  DEFAULT_COPY.fundraiserPledgeTitle}
               </h2>
               <p className="fund-pledge-text">
-                PRSM passes <strong>100%</strong> of donations directly to
-                allergy and immunology research organizations. What you give is
-                what they receive, with nothing taken out along the way.
+                {prsm.fundraiserPledgeText?.trim() ||
+                  DEFAULT_COPY.fundraiserPledgeText}
               </p>
             </Reveal>
           </div>

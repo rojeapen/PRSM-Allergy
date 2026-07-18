@@ -89,6 +89,7 @@ function EventDetailPage() {
     const total = prsm.events.length;
     const time = event.getFormattedTime();
     const hasPhoto = !!event.photoUrl?.trim();
+    const registrationLink = event.registrationLink?.trim();
     const others = prsm.events
         .map((e, i) => ({ e, i }))
         .filter((x) => x.i !== eventIndex);
@@ -117,6 +118,17 @@ function EventDetailPage() {
                             )}
                             {event.location && <span className="edetail-fact">{event.location}</span>}
                         </div>
+                        {registrationLink && (
+                            <a
+                                className="btn-primary edetail-register"
+                                href={registrationLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Register
+                                <span className="btn-arrow" aria-hidden="true">→</span>
+                            </a>
+                        )}
                     </header>
 
                     <Reveal className="edetail-figure">

@@ -136,6 +136,14 @@ export async function uploadPhoto(image: File, name: string): Promise<Photo> {
 
 }
 
+export async function uploadWaiver(file: File): Promise<Photo> {
+    const ext = file.name.split(".").pop();
+    const storageRef = ref(storage, `Documents/Waiver_${Date.now()}.${ext}`);
+    const snapshot = await uploadBytes(storageRef, file);
+    const url = await getDownloadURL(snapshot.ref);
+    return new Photo({ url, id: snapshot.ref.fullPath });
+}
+
 export async function deletePhoto(photo: Photo): Promise<void> {
     try {
         const photoRef = ref(storage, photo.id);

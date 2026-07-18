@@ -32,6 +32,7 @@ import {
   Photo,
   PRSM,
   SocialMediaLink,
+  Sponsor,
 } from "../constants";
 import {
   deletePhoto,
@@ -41,6 +42,7 @@ import {
   getPRSMFresh,
   updatePRSM,
   uploadPhoto,
+  uploadWaiver,
   type Subscriber,
 } from "../api/db";
 import { getFunctions, httpsCallable } from "firebase/functions";
@@ -70,16 +72,43 @@ class GalleryPhoto {
   }
 }
 
+let sponsorUidSeq = 0;
+
+class SponsorPhoto {
+  url?: string;
+  file?: File;
+  id?: string;
+  // Stable client-side key so reordered tiles keep their identity in React
+  // (file-backed logos have no Firebase id until they're saved).
+  uid: string;
+  link?: string;
+
+  constructor(params: {
+    url?: string;
+    file?: File;
+    id?: string;
+    link?: string;
+  }) {
+    this.url = params.url;
+    this.file = params.file;
+    this.id = params.id;
+    this.uid = `sp-${sponsorUidSeq++}`;
+    this.link = params.link;
+  }
+}
+
 /* The six editable content areas, in scroll order. Drives the rail. */
 const SECTIONS: Section[] = [
   { id: "hero", label: "Hero" },
   { id: "gallery", label: "Gallery" },
+  { id: "sponsors", label: "Sponsors" },
   { id: "about", label: "About" },
   { id: "fundraiser", label: "Featured fundraiser" },
   { id: "events-intro", label: "Events" },
   { id: "newsletter-copy", label: "Newsletter" },
   { id: "contact", label: "Contact" },
   { id: "footer", label: "Footer" },
+  { id: "waiver", label: "Waiver" },
   { id: "socials", label: "Social links" },
   { id: "subscribers", label: "Subscribers" },
   { id: "newsletter", label: "Send newsletter" },
@@ -110,6 +139,13 @@ function App() {
   const [galleryPhotos, setGalleryPhotos] = useState<GalleryPhoto[]>([]);
   const [canSaveGallery, setCanSaveGallery] = useState(false);
   const [loadingSaveGallery, setLoadingSaveGallery] = useState(false);
+
+  const [sponsorPhotos, setSponsorPhotos] = useState<SponsorPhoto[]>([]);
+  const [canSaveSponsors, setCanSaveSponsors] = useState(false);
+  const [loadingSaveSponsors, setLoadingSaveSponsors] = useState(false);
+  const [isSponsorDialogOpen, setIsSponsorDialogOpen] = useState(false);
+  const [newSponsorImage, setNewSponsorImage] = useState<File | null>(null);
+  const [newSponsorLink, setNewSponsorLink] = useState("");
 
   // Landing-page section copy (kickers / titles / subtitles).
   const [heroKicker, setHeroKicker] = useState("");
@@ -149,6 +185,14 @@ function App() {
   const [footerFine, setFooterFine] = useState("");
   const [canSaveFooterCopy, setCanSaveFooterCopy] = useState(false);
   const [loadingSaveFooterCopy, setLoadingSaveFooterCopy] = useState(false);
+
+  // Waiver PDF state. `waiverFile` holds a newly chosen file pending upload;
+  // `waiverFileName` reflects either the pending file's name or the current
+  // uploaded doc's name for display.
+  const [waiverFile, setWaiverFile] = useState<File | null>(null);
+  const [waiverUrl, setWaiverUrl] = useState<string>("");
+  const [canSaveWaiver, setCanSaveWaiver] = useState(false);
+  const [loadingSaveWaiver, setLoadingSaveWaiver] = useState(false);
 
   // Newsletter state
   const [articles, setArticles] = useState<Article[]>([]);
@@ -193,7 +237,7 @@ function App() {
   const { activeSection, goToSection } = useDashboardRail(SECTIONS, !!prsm);
 
   useEffect(() => {
-    isUserLoggedIn((isLoggedIn) => {});
+    isUserLoggedIn(() => {});
     getPRSMFresh().then((data) => {
       setPrsm(data!);
       setExcludedEventIdxs(new Set());
@@ -204,6 +248,15 @@ function App() {
         (photo) => new GalleryPhoto({ url: photo.url, id: photo.id }),
       );
       setGalleryPhotos(gallery);
+      const sponsors = data!.sponsors.map(
+        (sponsor) =>
+          new SponsorPhoto({
+            url: sponsor.photo.url,
+            id: sponsor.photo.id,
+            link: sponsor.link,
+          }),
+      );
+      setSponsorPhotos(sponsors);
       const socials = data!.socialMediaLinks.map(
         (link, idx) =>
           new SocialLinkEdit({
@@ -240,11 +293,10 @@ function App() {
       );
       setContactKicker(data!.contactKicker || DEFAULT_COPY.contactKicker);
       setContactTitle(data!.contactTitle || DEFAULT_COPY.contactTitle);
-      setContactSubtitle(
-        data!.contactSubtitle || DEFAULT_COPY.contactSubtitle,
-      );
+      setContactSubtitle(data!.contactSubtitle || DEFAULT_COPY.contactSubtitle);
       setFooterMission(data!.footerMission || DEFAULT_COPY.footerMission);
       setFooterFine(data!.footerFine || DEFAULT_COPY.footerFine);
+      setWaiverUrl(data!.waiverDoc?.url || "");
       setAboutTiles(
         (data!.aboutTiles || []).map(
           (tile: any) =>
@@ -350,6 +402,23 @@ function App() {
     await updatePRSM(prsm);
     setCanSaveFooterCopy(false);
     setLoadingSaveFooterCopy(false);
+    setPrsm(PRSM.fromMap(prsm.toMap()));
+  };
+
+  const saveWaiver = async () => {
+    if (!prsm || !waiverFile) return;
+    setLoadingSaveWaiver(true);
+    const oldWaiverDoc = prsm.waiverDoc;
+    const uploadedDoc = await uploadWaiver(waiverFile);
+    prsm.waiverDoc = uploadedDoc;
+    await updatePRSM(prsm);
+    if (oldWaiverDoc) {
+      await deletePhoto(oldWaiverDoc);
+    }
+    setWaiverFile(null);
+    setWaiverUrl(uploadedDoc.url);
+    setCanSaveWaiver(false);
+    setLoadingSaveWaiver(false);
     setPrsm(PRSM.fromMap(prsm.toMap()));
   };
 
@@ -500,6 +569,98 @@ function App() {
     await updatePRSM(prsm!);
     setCanSaveGallery(false);
     setLoadingSaveGallery(false);
+    setPrsm(PRSM.fromMap(prsm!.toMap())); // Refresh state
+  };
+
+  const handleAddSponsorPhoto = async (image: File, link: string) => {
+    setSponsorPhotos([
+      ...sponsorPhotos,
+      new SponsorPhoto({ file: image, link: link }),
+    ]);
+    setCanSaveSponsors(true);
+  };
+
+  const openSponsorDialog = () => {
+    setNewSponsorImage(null);
+    setNewSponsorLink("");
+    setIsSponsorDialogOpen(true);
+  };
+
+  const closeSponsorDialog = () => {
+    setIsSponsorDialogOpen(false);
+    setNewSponsorImage(null);
+    setNewSponsorLink("");
+  };
+
+  const confirmSponsorDialog = async () => {
+    if (!newSponsorImage) return;
+    await handleAddSponsorPhoto(newSponsorImage, newSponsorLink.trim());
+    closeSponsorDialog();
+  };
+
+  // Drag-to-reorder state for the sponsor strip.
+  const sponsorDragFrom = useRef<number | null>(null);
+  const [sponsorDragIdx, setSponsorDragIdx] = useState<number | null>(null);
+  const [sponsorDropIdx, setSponsorDropIdx] = useState<number | null>(null);
+
+  const handleReorderSponsorPhoto = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0) return;
+    setSponsorPhotos((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+    setCanSaveSponsors(true);
+  };
+
+  const handleDeleteSponsorPhoto = (imageSrc: string | File | undefined) => {
+    const updatedPhotos = sponsorPhotos.filter((photo) => {
+      if (photo.file) {
+        return photo.file !== imageSrc;
+      } else {
+        return photo.url !== imageSrc;
+      }
+    });
+    setSponsorPhotos(updatedPhotos);
+    setCanSaveSponsors(true);
+  };
+
+  const saveSponsorsSection = async () => {
+    setLoadingSaveSponsors(true);
+    const uploadedPhotos: Sponsor[] = [];
+    for (const photo of sponsorPhotos) {
+      if (photo.file) {
+        const uploadedPhoto: Photo = await uploadPhoto(
+          photo.file,
+          `Sponsor Logo ${Date.now()}`,
+        );
+        uploadedPhotos.push(
+          new Sponsor({ photo: uploadedPhoto, link: photo.link || "" }),
+        );
+      } else if (photo.url) {
+        uploadedPhotos.push(
+          new Sponsor({
+            photo: new Photo({ url: photo.url, id: photo.id! }),
+            link: photo.link || "",
+          }),
+        ); // Retain existing logos
+      }
+    }
+    //delete old logos from storage that are not in the new sponsor list
+    for (const oldPhoto of prsm!.sponsors) {
+      const stillExists = uploadedPhotos.find(
+        (photo) => photo.photo.id === oldPhoto.photo.id,
+      );
+      if (!stillExists) {
+        //delete from storage
+        await deletePhoto(oldPhoto.photo);
+      }
+    }
+    prsm!.sponsors = uploadedPhotos;
+    await updatePRSM(prsm!);
+    setCanSaveSponsors(false);
+    setLoadingSaveSponsors(false);
     setPrsm(PRSM.fromMap(prsm!.toMap())); // Refresh state
   };
 
@@ -898,7 +1059,10 @@ function App() {
                       onDrop={(e) => {
                         e.preventDefault();
                         if (galleryDragFrom.current !== null) {
-                          handleReorderGalleryPhoto(galleryDragFrom.current, idx);
+                          handleReorderGalleryPhoto(
+                            galleryDragFrom.current,
+                            idx,
+                          );
                         }
                         galleryDragFrom.current = null;
                         setGalleryDragIdx(null);
@@ -958,6 +1122,178 @@ function App() {
                 </div>
               </Panel>
 
+              {/* ---- Sponsors ---- */}
+              <Panel
+                id="sponsors"
+                title="Sponsor strip"
+                desc="Logos shown in the trust strip beneath the hero on the homepage. Drag a logo to reorder, add or remove, then save."
+                action={
+                  <SaveButton
+                    dirty={canSaveSponsors}
+                    loading={loadingSaveSponsors}
+                    onClick={saveSponsorsSection}
+                  />
+                }
+              >
+                {sponsorPhotos.length === 0 && (
+                  <EmptyState>
+                    No sponsor logos yet. Use the tile below to add your first
+                    one, then save.
+                  </EmptyState>
+                )}
+                <div className="photo-grid">
+                  {sponsorPhotos.map((photo, idx) => (
+                    <div
+                      className={`photo is-logo${sponsorDragIdx === idx ? " is-dragging" : ""}${sponsorDropIdx === idx && sponsorDragIdx !== idx ? " is-drop-target" : ""}`}
+                      key={photo.uid}
+                      draggable
+                      onDragStart={(e) => {
+                        sponsorDragFrom.current = idx;
+                        setSponsorDragIdx(idx);
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = "move";
+                        if (sponsorDropIdx !== idx) setSponsorDropIdx(idx);
+                      }}
+                      onDragLeave={() => {
+                        setSponsorDropIdx((cur) => (cur === idx ? null : cur));
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        if (sponsorDragFrom.current !== null) {
+                          handleReorderSponsorPhoto(
+                            sponsorDragFrom.current,
+                            idx,
+                          );
+                        }
+                        sponsorDragFrom.current = null;
+                        setSponsorDragIdx(null);
+                        setSponsorDropIdx(null);
+                      }}
+                      onDragEnd={() => {
+                        sponsorDragFrom.current = null;
+                        setSponsorDragIdx(null);
+                        setSponsorDropIdx(null);
+                      }}
+                    >
+                      <img
+                        src={photo.url ?? URL.createObjectURL(photo.file!)}
+                        alt="Sponsor logo"
+                        draggable={false}
+                      />
+                      <button
+                        className="photo-del"
+                        aria-label="Delete logo"
+                        title="Delete logo"
+                        onClick={() =>
+                          handleDeleteSponsorPhoto(photo.file ?? photo.url)
+                        }
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={2.5}
+                          strokeLinecap="round"
+                          aria-hidden="true"
+                        >
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="photo-add"
+                    onClick={openSponsorDialog}
+                  >
+                    <span className="photo-add-plus" aria-hidden="true">
+                      +
+                    </span>
+                    Add sponsor
+                  </button>
+                </div>
+
+                {isSponsorDialogOpen && (
+                  <div
+                    className="dialog-backdrop"
+                    role="presentation"
+                    onClick={closeSponsorDialog}
+                  >
+                    <div
+                      className="sponsor-dialog"
+                      role="dialog"
+                      aria-modal="true"
+                      aria-labelledby="sponsor-dialog-title"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="sponsor-dialog-head">
+                        <div>
+                          <p className="kicker">Add sponsor</p>
+                          <h3 id="sponsor-dialog-title">Upload a logo</h3>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-quiet"
+                          onClick={closeSponsorDialog}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+
+                      <Field
+                        label="Sponsor image"
+                        htmlFor="sponsor-image"
+                        hint="PNG, JPG, or SVG"
+                      >
+                        <input
+                          type="file"
+                          id="sponsor-image"
+                          accept="image/*"
+                          className="field-file"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setNewSponsorImage(e.target.files[0]);
+                            }
+                          }}
+                        />
+                      </Field>
+
+                      <Field
+                        label="Sponsor link"
+                        htmlFor="sponsor-link"
+                        hint="optional"
+                      >
+                        <input
+                          type="url"
+                          id="sponsor-link"
+                          className="field"
+                          placeholder="https://example.com"
+                          value={newSponsorLink}
+                          onChange={(e) => setNewSponsorLink(e.target.value)}
+                        />
+                      </Field>
+
+                      <div className="sponsor-dialog-actions">
+                        <button
+                          type="button"
+                          className="btn-primary"
+                          onClick={confirmSponsorDialog}
+                          disabled={!newSponsorImage}
+                        >
+                          Add sponsor
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Panel>
+
               {/* ---- About ---- */}
               <Panel
                 id="about"
@@ -995,7 +1331,9 @@ function App() {
                       id="about-subtitle"
                       className="field"
                       value={aboutSubtitle}
-                      onChange={(e) => handleAboutSubtitleChange(e.target.value)}
+                      onChange={(e) =>
+                        handleAboutSubtitleChange(e.target.value)
+                      }
                     />
                   </Field>
                   <div className="subblock-foot">
@@ -1357,6 +1695,56 @@ function App() {
                 </Field>
               </Panel>
 
+              {/* ---- Waiver ---- */}
+              <Panel
+                id="waiver"
+                title="Waiver document"
+                desc="The PDF shown on the /Waiver page. Upload a new file to replace it."
+                action={
+                  <SaveButton
+                    dirty={canSaveWaiver}
+                    loading={loadingSaveWaiver}
+                    onClick={saveWaiver}
+                  />
+                }
+              >
+                <Field
+                  label="Waiver PDF"
+                  htmlFor="waiver-file"
+                  hint="replaces the current document"
+                >
+                  <input
+                    type="file"
+                    id="waiver-file"
+                    accept="application/pdf"
+                    className="field-file"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setWaiverFile(e.target.files[0]);
+                        setCanSaveWaiver(true);
+                      }
+                    }}
+                  />
+                </Field>
+                {waiverFile ? (
+                  <p className="form-hint">Selected: {waiverFile.name}</p>
+                ) : waiverUrl ? (
+                  <a
+                    className="btn-quiet"
+                    href={waiverUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View current waiver
+                  </a>
+                ) : (
+                  <EmptyState>
+                    No waiver uploaded yet. The public page falls back to the
+                    default document until one is uploaded here.
+                  </EmptyState>
+                )}
+              </Panel>
+
               {/* ---- Social links ---- */}
               <Panel
                 id="socials"
@@ -1504,7 +1892,11 @@ function App() {
                 }
               >
                 {subscribers === null ? (
-                  <div className="subs-loading" role="status" aria-live="polite">
+                  <div
+                    className="subs-loading"
+                    role="status"
+                    aria-live="polite"
+                  >
                     <span className="spinner-sm" aria-hidden="true" />
                     Loading subscribers…
                   </div>

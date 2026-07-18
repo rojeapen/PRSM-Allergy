@@ -14,7 +14,8 @@ export async function login(email: string, password: string): Promise<string> {
             localStorage.setItem("userId", auth.currentUser!.uid!);
             localStorage.setItem("isAdmin", "true");
             return "Success";
-        } catch (e) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: any) {
             const errorCode = e.code;
             switch (errorCode) {
                 case "auth/user-not-found":
@@ -52,7 +53,8 @@ export async function register(email: string, password: string, accessCode: stri
 
             return "Success";
         }
-        catch (e) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        catch (e: any) {
             // Parse the error message
             const errorCode = e.code;
             switch (errorCode) {

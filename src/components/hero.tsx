@@ -1,15 +1,9 @@
 import { useEffect, useState } from "react";
 import { ORIGIN, DEFAULT_COPY, type PRSM } from "../constants";
-import { scrollToId } from "../lib/scroll";
+
 import "./hero.css";
 
-const Hero = ({
-  prsm,
-  hasFeaturedFundraiser,
-}: {
-  prsm: PRSM;
-  hasFeaturedFundraiser: boolean;
-}) => {
+const Hero = ({ prsm }: { prsm: PRSM }) => {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

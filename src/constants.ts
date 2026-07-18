@@ -15,6 +15,8 @@ export const DEFAULT_COPY = {
     aboutKicker: 'Our work',
     aboutTitle: 'Who we are',
     fundraiserKicker: 'Featured fundraiser',
+    fundraiserPledgeTitle: 'Every dollar reaches the research.',
+    fundraiserPledgeText: 'PRSM passes 100% of donations directly to allergy and immunology research organizations. What you give is what they receive, with nothing taken out along the way.',
     eventsKicker: 'What’s next',
     eventsTitle: 'Upcoming events',
     eventsSubtitle: 'Join our music recitals, sports events, and educational sessions.',
@@ -77,10 +79,11 @@ export class Event {
     photoPosX: number;
     photoPosY: number;
     photoZoom: number;
+    registrationLink?: string;
 
 
     constructor({
-        title, description, date, displayDate, time, location, photoUrl, photoPosX, photoPosY, photoZoom
+        title, description, date, displayDate, time, location, photoUrl, photoPosX, photoPosY, photoZoom, registrationLink
     }: {
         title: string;
         description: string;
@@ -92,6 +95,7 @@ export class Event {
         photoPosX?: number;
         photoPosY?: number;
         photoZoom?: number;
+        registrationLink?: string;
 
     }) {
         this.title = title;
@@ -104,6 +108,7 @@ export class Event {
         this.photoPosX = photoPosX ?? 50;
         this.photoPosY = photoPosY ?? 50;
         this.photoZoom = photoZoom ?? 1;
+        this.registrationLink = registrationLink;
 
     }
 
@@ -128,6 +133,7 @@ export class Event {
             photoPosX: this.photoPosX,
             photoPosY: this.photoPosY,
             photoZoom: this.photoZoom,
+            registrationLink: this.registrationLink ?? '',
 
         };
     }
@@ -144,7 +150,32 @@ export class Event {
             photoPosX: data.photoPosX,
             photoPosY: data.photoPosY,
             photoZoom: data.photoZoom,
+            registrationLink: data.registrationLink,
 
+        });
+    }
+}
+
+export class Sponsor {
+    photo: Photo;
+    link: string;
+
+    constructor({ photo, link }: { photo: Photo; link: string }) {
+        this.photo = photo;
+        this.link = link;
+    }
+
+    toMap(): Record<string, any> {
+        return {
+            photo: this.photo.toMap(),
+            link: this.link,
+        };
+    }
+
+    static fromMap(data: DocumentData): Sponsor {
+        return new Sponsor({
+            photo: Photo.fromMap(data.photo),
+            link: data.link,
         });
     }
 }
@@ -307,6 +338,7 @@ export class PRSM {
     landingPageSubtitle: string;
     landingPagePhoto: Photo;
     galleryPhotos: Photo[];
+    sponsors: Sponsor[];
     socialMediaLinks: SocialMediaLink[];
     teamMembers: TeamMember[];
     aboutSubtitle: string;
@@ -326,6 +358,8 @@ export class PRSM {
     aboutKicker?: string;
     aboutTitle?: string;
     fundraiserKicker?: string;
+    fundraiserPledgeTitle?: string;
+    fundraiserPledgeText?: string;
     eventsKicker?: string;
     eventsTitle?: string;
     newsletterKicker?: string;
@@ -336,6 +370,7 @@ export class PRSM {
     contactSubtitle?: string;
     footerMission?: string;
     footerFine?: string;
+    waiverDoc?: Photo;
 
     constructor({
         events,
@@ -344,6 +379,7 @@ export class PRSM {
         landingPageSubtitle,
         landingPagePhoto,
         galleryPhotos,
+        sponsors,
         socialMediaLinks,
         teamMembers,
         aboutSubtitle,
@@ -361,6 +397,8 @@ export class PRSM {
         aboutKicker,
         aboutTitle,
         fundraiserKicker,
+        fundraiserPledgeTitle,
+        fundraiserPledgeText,
         eventsKicker,
         eventsTitle,
         newsletterKicker,
@@ -371,6 +409,7 @@ export class PRSM {
         contactSubtitle,
         footerMission,
         footerFine,
+        waiverDoc,
     }: {
         events: Event[];
         fundraisers: Fundraiser[];
@@ -378,6 +417,7 @@ export class PRSM {
         landingPageSubtitle: string;
         landingPagePhoto: Photo;
         galleryPhotos: Photo[];
+        sponsors: Sponsor[];
         socialMediaLinks: SocialMediaLink[];
         teamMembers: TeamMember[];
         aboutSubtitle: string;
@@ -395,6 +435,8 @@ export class PRSM {
         aboutKicker?: string;
         aboutTitle?: string;
         fundraiserKicker?: string;
+        fundraiserPledgeTitle?: string;
+        fundraiserPledgeText?: string;
         eventsKicker?: string;
         eventsTitle?: string;
         newsletterKicker?: string;
@@ -405,6 +447,7 @@ export class PRSM {
         contactSubtitle?: string;
         footerMission?: string;
         footerFine?: string;
+        waiverDoc?: Photo;
     }) {
         this.events = events;
         this.fundraisers = fundraisers;
@@ -412,6 +455,7 @@ export class PRSM {
         this.landingPageSubtitle = landingPageSubtitle;
         this.landingPagePhoto = landingPagePhoto;
         this.galleryPhotos = galleryPhotos;
+        this.sponsors = sponsors;
         this.socialMediaLinks = socialMediaLinks;
         this.teamMembers = teamMembers;
         this.aboutSubtitle = aboutSubtitle;
@@ -429,6 +473,8 @@ export class PRSM {
         this.aboutKicker = aboutKicker;
         this.aboutTitle = aboutTitle;
         this.fundraiserKicker = fundraiserKicker;
+        this.fundraiserPledgeTitle = fundraiserPledgeTitle;
+        this.fundraiserPledgeText = fundraiserPledgeText;
         this.eventsKicker = eventsKicker;
         this.eventsTitle = eventsTitle;
         this.newsletterKicker = newsletterKicker;
@@ -439,6 +485,7 @@ export class PRSM {
         this.contactSubtitle = contactSubtitle;
         this.footerMission = footerMission;
         this.footerFine = footerFine;
+        this.waiverDoc = waiverDoc;
     }
 
     toMap(): Record<string, any> {
@@ -449,6 +496,7 @@ export class PRSM {
             landingPageSubtitle: this.landingPageSubtitle,
             landingPagePhoto: this.landingPagePhoto.toMap(),
             galleryPhotos: this.galleryPhotos.map(photo => photo.toMap()),
+            sponsors: this.sponsors.map(photo => photo.toMap()),
             socialMediaLinks: this.socialMediaLinks.map(link => link.toMap()),
             teamMembers: this.teamMembers.map(member => member.toMap()),
             aboutSubtitle: this.aboutSubtitle,
@@ -466,6 +514,8 @@ export class PRSM {
             aboutKicker: this.aboutKicker ?? '',
             aboutTitle: this.aboutTitle ?? '',
             fundraiserKicker: this.fundraiserKicker ?? '',
+            fundraiserPledgeTitle: this.fundraiserPledgeTitle ?? '',
+            fundraiserPledgeText: this.fundraiserPledgeText ?? '',
             eventsKicker: this.eventsKicker ?? '',
             eventsTitle: this.eventsTitle ?? '',
             newsletterKicker: this.newsletterKicker ?? '',
@@ -476,6 +526,7 @@ export class PRSM {
             contactSubtitle: this.contactSubtitle ?? '',
             footerMission: this.footerMission ?? '',
             footerFine: this.footerFine ?? '',
+            ...(this.waiverDoc ? { waiverDoc: this.waiverDoc.toMap() } : {}),
         };
     }
 
@@ -487,6 +538,7 @@ export class PRSM {
             landingPageSubtitle: data.landingPageSubtitle,
             landingPagePhoto: Photo.fromMap(data.landingPagePhoto),
             galleryPhotos: data.galleryPhotos.map((photoData: DocumentData) => Photo.fromMap(photoData)),
+            sponsors: (data.sponsors ?? []).map((photoData: DocumentData) => Sponsor.fromMap(photoData)),
             socialMediaLinks: data.socialMediaLinks.map((linkData: DocumentData) => SocialMediaLink.fromMap(linkData)),
             teamMembers: data.teamMembers.map((memberData: DocumentData) => TeamMember.fromMap(memberData)),
             aboutSubtitle: data.aboutSubtitle,
@@ -504,6 +556,8 @@ export class PRSM {
             aboutKicker: data.aboutKicker,
             aboutTitle: data.aboutTitle,
             fundraiserKicker: data.fundraiserKicker,
+            fundraiserPledgeTitle: data.fundraiserPledgeTitle,
+            fundraiserPledgeText: data.fundraiserPledgeText,
             eventsKicker: data.eventsKicker,
             eventsTitle: data.eventsTitle,
             newsletterKicker: data.newsletterKicker,
@@ -514,6 +568,7 @@ export class PRSM {
             contactSubtitle: data.contactSubtitle,
             footerMission: data.footerMission,
             footerFine: data.footerFine,
+            waiverDoc: data.waiverDoc ? Photo.fromMap(data.waiverDoc) : undefined,
         });
     }
 

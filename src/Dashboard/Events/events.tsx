@@ -36,6 +36,7 @@ class EventEdit {
     photoPosX: number;
     photoPosY: number;
     photoZoom: number;
+    registrationLink?: string;
 
     constructor(params: {
         title: string;
@@ -53,6 +54,7 @@ class EventEdit {
         photoPosX?: number;
         photoPosY?: number;
         photoZoom?: number;
+        registrationLink?: string;
     }) {
         this.title = params.title;
         this.description = params.description;
@@ -69,6 +71,7 @@ class EventEdit {
         this.photoPosX = params.photoPosX ?? 50;
         this.photoPosY = params.photoPosY ?? 50;
         this.photoZoom = params.photoZoom ?? 1;
+        this.registrationLink = params.registrationLink;
     }
 }
 
@@ -197,7 +200,7 @@ function App() {
     }, [editingPhotoSrc]);
 
     useEffect(() => {
-        isUserLoggedIn((isLoggedIn) => { });
+        isUserLoggedIn(() => { });
         getPRSMFresh().then((data) => {
             const eventsList = data!.events.map((event, idx) => {
                 return new EventEdit({
@@ -211,6 +214,7 @@ function App() {
                     photoPosX: event.photoPosX,
                     photoPosY: event.photoPosY,
                     photoZoom: event.photoZoom,
+                    registrationLink: event.registrationLink,
                     id: idx.toString(),
                 })
             }
@@ -241,7 +245,7 @@ function App() {
         setEditingEvent(new EventEdit({ ...events[idx] }));
     };
 
-    const handleEditEventField = (field: 'title' | 'description' | 'date' | 'time' | 'location', value: string) => {
+    const handleEditEventField = (field: 'title' | 'description' | 'date' | 'time' | 'location' | 'registrationLink', value: string) => {
         if (editingEvent) {
             setEditingEvent(new EventEdit({ ...editingEvent, [field]: value }));
         }
@@ -326,6 +330,7 @@ function App() {
                 photoPosX: event.photoPosX,
                 photoPosY: event.photoPosY,
                 photoZoom: event.photoZoom,
+                registrationLink: event.registrationLink,
             }));
 
             // Keep local edit state in sync with the uploaded photo so a later save
@@ -342,6 +347,7 @@ function App() {
                 photoPosX: event.photoPosX,
                 photoPosY: event.photoPosY,
                 photoZoom: event.photoZoom,
+                registrationLink: event.registrationLink,
             }));
         }
 
@@ -435,6 +441,15 @@ function App() {
                                                             onChange={e => handleEditEventField('location', e.target.value)}
                                                         />
                                                     </Field>
+                                                    <Field label="Registration link (optional)">
+                                                        <input
+                                                            type="url"
+                                                            className="field"
+                                                            placeholder="https://…"
+                                                            value={editingEvent?.registrationLink || ''}
+                                                            onChange={e => handleEditEventField('registrationLink', e.target.value)}
+                                                        />
+                                                    </Field>
                                                     <Field label="Photo">
                                                         <input
                                                             type="file"
@@ -480,6 +495,9 @@ function App() {
                                                         <span className="row-title">{event.title}</span>
                                                         <span className="ev-meta">{event.date} · {fmtTime(event.time)}</span>
                                                         <span className="ev-meta">{event.location}</span>
+                                                        {event.registrationLink && (
+                                                            <span className="ev-meta">Registration: {event.registrationLink}</span>
+                                                        )}
                                                         <span className="ev-desc">{event.description}</span>
                                                     </div>
                                                 </div>
@@ -537,6 +555,15 @@ function App() {
                                         placeholder="Venue or address"
                                         value={newEvent.location}
                                         onChange={e => setNewEvent(new EventEdit({ ...newEvent, location: e.target.value }))}
+                                    />
+                                </Field>
+                                <Field label="Registration link (optional)">
+                                    <input
+                                        type="url"
+                                        className="field"
+                                        placeholder="https://…"
+                                        value={newEvent.registrationLink || ''}
+                                        onChange={e => setNewEvent(new EventEdit({ ...newEvent, registrationLink: e.target.value }))}
                                     />
                                 </Field>
                                 <Field label="Photo">

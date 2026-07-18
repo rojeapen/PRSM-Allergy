@@ -9,6 +9,7 @@ import Gallery from "./components/gallery";
 import Header from "./components/header";
 import Hero from "./components/hero";
 import Newsletter from "./components/newsletter";
+import SponsorStrip from "./components/sponsors";
 import { useState, useEffect } from "react";
 import { getPRSM } from "./api/db";
 import type { PRSM, Event } from "./constants";
@@ -23,14 +24,15 @@ function App() {
   const getUpcomingEvents = (events: Event[]) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const sortedEvents = [...events].sort(
-      (a, b) =>
-        new Date(a.date + "T00:00:00").getTime() -
-        new Date(b.date + "T00:00:00").getTime(),
-    );
-    return sortedEvents.filter(
-      (event) => new Date(event.date + "T00:00:00") >= today,
-    );
+    // Keep each event's original index so detail links stay correct after sorting/filtering.
+    return events
+      .map((event, index) => ({ event, index }))
+      .filter(({ event }) => new Date(event.date + "T00:00:00") >= today)
+      .sort(
+        (a, b) =>
+          new Date(a.event.date + "T00:00:00").getTime() -
+          new Date(b.event.date + "T00:00:00").getTime(),
+      );
   };
 
   if (!prsm) {
@@ -51,7 +53,8 @@ function App() {
       </a>
       <Header />
       <main id="main">
-        <Hero prsm={prsm} hasFeaturedFundraiser={!!featured} />
+        <Hero prsm={prsm} />
+        {prsm.sponsors.length > 0 ? <SponsorStrip prsm={prsm} /> : null}
         {prsm.galleryPhotos.length > 0 ? <Gallery prsm={prsm} /> : null}
         <About prsm={prsm} />
         {featured ? (

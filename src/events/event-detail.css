@@ -56,6 +56,7 @@
 }
 .edetail-fact { font-weight: 500; }
 .edetail-fact-dot { color: var(--muted); }
+.edetail-register { margin-top: var(--space-8); align-self: flex-start; }
 
 /* ---- Framed hero image ---- */
 .edetail-figure {

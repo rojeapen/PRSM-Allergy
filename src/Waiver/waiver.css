@@ -1,0 +1,70 @@
+.terms-page {
+  min-height: 60vh;
+
+}
+
+.terms-hero-shell {
+  max-width: 900px;
+}
+
+.terms-hero {
+  padding-bottom: 0 ;
+}
+
+.terms-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.terms-lede {
+  max-width: 60ch;
+}
+
+.terms-lede a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.terms-doc-shell {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+
+}
+
+.terms-doc {
+  padding-top: 0 !important;
+}
+
+.terms-frame {
+  width: 100%;
+  max-width: 1000px;
+  height: min(80vh, 1100px);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.terms-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+/* The reused <Footer> wordmark sizes its logo via .header-logo, a rule that
+   normally ships with header.css. This page omits <Header>, so restate it. */
+.footer-wordmark .header-logo {
+  width: 48px;
+  height: auto;
+  flex: none;
+}
+
+@media (max-width: 640px) {
+  .footer-wordmark .header-logo { width: 40px; }
+}

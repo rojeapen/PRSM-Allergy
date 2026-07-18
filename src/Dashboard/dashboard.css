@@ -203,6 +203,8 @@
 }
 .photo-del:hover { background: #bb352f; }
 .photo-add {
+  appearance: none;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -215,6 +217,7 @@
   color: var(--research-teal-deep);
   font-weight: 600;
   font-size: 0.875rem;
+  font-family: inherit;
   text-align: center;
   padding: var(--space-12);
   cursor: pointer;
@@ -222,12 +225,63 @@
     border-color var(--dur-mid) var(--ease-out-quart),
     background-color var(--dur-mid) var(--ease-out-quart);
 }
+.photo-add:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--research-teal) 24%, transparent);
+}
 .photo-add:hover {
   border-color: var(--research-teal-deep);
   background: color-mix(in oklch, var(--research-teal) 8%, var(--surface-sunken));
 }
 .photo-add .photo-add-plus { font-size: 1.4rem; line-height: 1; }
-.photo-add input { display: none; }
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: var(--space-24);
+  background: color-mix(in oklch, var(--ink) 26%, transparent);
+  backdrop-filter: blur(6px);
+}
+.sponsor-dialog {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-20);
+  padding: var(--space-24);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-elevated);
+}
+.sponsor-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-16);
+}
+.sponsor-dialog-head h3 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+.sponsor-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ============================ Sponsors panel ============================
+   Logos vary in aspect ratio and are often transparent PNGs, so they get a
+   contained (uncropped) fit on a plain white tile instead of the gallery's
+   cropped 4:3 photo tile. */
+.photo.is-logo {
+  background: var(--surface);
+  padding: var(--space-16);
+}
+.photo.is-logo img {
+  object-fit: contain;
+}
 
 /* ============================ Newsletter panel ============================ */
 .nl-events {

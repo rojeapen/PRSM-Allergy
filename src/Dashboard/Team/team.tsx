@@ -186,7 +186,7 @@ function App() {
     const { activeSection, goToSection } = useDashboardRail(SECTIONS, !!prsm)
 
     useEffect(() => {
-        isUserLoggedIn((isLoggedIn) => { });
+        isUserLoggedIn(() => { });
         getPRSMFresh().then((data) => {
             setSubtitle(data!.teamSubtitle || '');
             setOurStory(data!.ourStory || '');
